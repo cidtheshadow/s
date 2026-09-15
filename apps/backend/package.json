@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
+    "build": "npm --prefix ../../packages/shared run build",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
