@@ -1,0 +1,18 @@
+{
+  "name": "kisanify-monorepo",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "backend:dev": "npm --prefix apps/backend run dev",
+    "mobile:dev": "npm --prefix apps/mobile run dev",
+    "mobile:web": "npm --prefix apps/mobile run web",
+    "mobile:android": "npm --prefix apps/mobile run android",
+    "typecheck": "npm run --workspaces typecheck"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0"
+  }
+}

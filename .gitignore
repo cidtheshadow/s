@@ -1,0 +1,19 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Local Environment & Secrets
+.env
+.dev.vars
+*.env.local
+
+# Build Outputs
+dist/
+build/
+.expo/
+.wrangler/
+.system_generated/
+
+# OS / Editor Files
+.DS_Store
+*.log
