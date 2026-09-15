@@ -58,11 +58,7 @@ app.route('/ivr', ivrRouter);
 
 // Frontend UI HTML Fallback (serves React Native Web app for browser navigation requests)
 app.get('*', (c) => {
-  const accept = c.req.header('Accept') || '';
-  if (accept.includes('text/html') || c.req.path === '/') {
-    return c.html(INDEX_HTML);
-  }
-  return c.json({ service: 'Kisanify Smart Mandi API', status: 'online', path: c.req.path }, 200);
+  return c.html(INDEX_HTML);
 });
 
 // Global Error Handler
