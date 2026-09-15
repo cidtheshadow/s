@@ -32,6 +32,7 @@ app.use('*', cors({
 }));
 
 // Routes
+app.get('/', (c) => c.json({ service: 'Kisanify Smart Mandi API', status: 'online', timestamp: new Date().toISOString() }));
 app.route('/health', healthRouter);
 app.route('/auth', authRouter);
 app.route('/farmers', farmersRouter);
