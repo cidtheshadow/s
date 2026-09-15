@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
-    "build": "npm --prefix ../../packages/shared run build && npm --prefix ../mobile run build:web && mkdir -p ../../public && cp -R ../mobile/dist/* ../../public/",
+    "build": "npm --prefix ../../packages/shared run build",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
