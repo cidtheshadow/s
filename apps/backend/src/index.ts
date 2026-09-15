@@ -16,6 +16,26 @@ import { ivrRouter } from './routes/ivr.js';
 
 const app = new Hono<AppContext>();
 
+const INDEX_HTML = `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>Kisanify | किसानिफाई</title>
+    <style id="expo-reset">
+      html, body { height: 100%; }
+      body { overflow: hidden; }
+      #root { display: flex; height: 100%; flex: 1; }
+    </style>
+  <link rel="preload" href="/_expo/static/css/global-30fcb4b49539bac5f11e99be779c574c.css" as="style"><link rel="stylesheet" href="/_expo/static/css/global-30fcb4b49539bac5f11e99be779c574c.css"></head>
+  <body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="root"></div>
+  <script src="/_expo/static/js/web/entry-8559a687cbbef98f94f5df6e7433c9ec.js" defer></script>
+</body>
+</html>`;
+
 // Global Middleware
 app.use('*', cors({
   origin: '*',
@@ -23,8 +43,7 @@ app.use('*', cors({
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
 }));
 
-// Routes
-app.get('/', (c) => c.json({ service: 'Kisanify Smart Mandi API', status: 'online', timestamp: new Date().toISOString() }));
+// API Routes
 app.route('/health', healthRouter);
 app.route('/auth', authRouter);
 app.route('/farmers', farmersRouter);
@@ -36,6 +55,15 @@ app.route('/officer', officerRouter);
 app.route('/admin', adminRouter);
 app.route('/assistant', assistantRouter);
 app.route('/ivr', ivrRouter);
+
+// Frontend UI HTML Fallback (serves React Native Web app for browser navigation requests)
+app.get('*', (c) => {
+  const accept = c.req.header('Accept') || '';
+  if (accept.includes('text/html') || c.req.path === '/') {
+    return c.html(INDEX_HTML);
+  }
+  return c.json({ service: 'Kisanify Smart Mandi API', status: 'online', path: c.req.path }, 200);
+});
 
 // Global Error Handler
 app.onError(handleGlobalError);
