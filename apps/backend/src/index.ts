@@ -17,14 +17,6 @@ import { ivrRouter } from './routes/ivr.js';
 const app = new Hono<AppContext>();
 
 // Global Middleware
-app.use('*', async (c, next) => {
-  const gProcess = (globalThis as any).process;
-  if (gProcess && gProcess.env) {
-    c.env = { ...gProcess.env, ...c.env };
-  }
-  await next();
-});
-
 app.use('*', cors({
   origin: '*',
   allowHeaders: ['Content-Type', 'Authorization'],
