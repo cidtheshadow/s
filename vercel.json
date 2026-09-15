@@ -1,6 +1,7 @@
 {
   "version": 2,
   "buildCommand": "npm run build",
+  "outputDirectory": "public",
   "rewrites": [
     { "source": "/health", "destination": "/api" },
     { "source": "/auth/(.*)", "destination": "/api" },
@@ -18,6 +19,6 @@
     { "source": "/assistant/(.*)", "destination": "/api" },
     { "source": "/ivr/(.*)", "destination": "/api" },
     { "source": "/api/(.*)", "destination": "/api" },
-    { "source": "/((?!_expo|assets|favicon|.*\\..*).*)", "destination": "/index.html" }
+    { "source": "/((?!api|_expo|assets|favicon|.*\\..*).*)", "destination": "/index.html" }
   ]
 }

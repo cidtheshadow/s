@@ -58,6 +58,10 @@ app.route('/ivr', ivrRouter);
 
 // Frontend UI HTML Fallback (serves React Native Web app for browser navigation requests)
 app.get('*', (c) => {
+  const path = c.req.path;
+  if (path.startsWith('/_expo') || path.startsWith('/assets') || path.match(/\.[a-zA-Z0-9]+$/)) {
+    return c.notFound();
+  }
   return c.html(INDEX_HTML);
 });
 
