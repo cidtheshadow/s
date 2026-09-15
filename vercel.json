@@ -1,8 +1,23 @@
 {
   "version": 2,
-  "installCommand": "npm install --include-workspace-root --workspace=@kisanify/backend --workspace=@kisanify/shared",
   "buildCommand": "npm run build",
   "rewrites": [
-    { "source": "/(.*)", "destination": "/api" }
+    { "source": "/health", "destination": "/api" },
+    { "source": "/auth/(.*)", "destination": "/api" },
+    { "source": "/farmers/(.*)", "destination": "/api" },
+    { "source": "/centres/(.*)", "destination": "/api" },
+    { "source": "/centres", "destination": "/api" },
+    { "source": "/bookings/(.*)", "destination": "/api" },
+    { "source": "/bookings", "destination": "/api" },
+    { "source": "/prices/(.*)", "destination": "/api" },
+    { "source": "/prices", "destination": "/api" },
+    { "source": "/grievances/(.*)", "destination": "/api" },
+    { "source": "/grievances", "destination": "/api" },
+    { "source": "/officer/(.*)", "destination": "/api" },
+    { "source": "/admin/(.*)", "destination": "/api" },
+    { "source": "/assistant/(.*)", "destination": "/api" },
+    { "source": "/ivr/(.*)", "destination": "/api" },
+    { "source": "/api/(.*)", "destination": "/api" },
+    { "source": "/((?!_expo|assets|favicon|.*\\..*).*)", "destination": "/index.html" }
   ]
 }

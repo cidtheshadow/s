@@ -1,6 +1,12 @@
 import { supabase } from './supabase';
 
-const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL || 'http://localhost:8787';
+const getBackendUrl = () => {
+  if (process.env.EXPO_PUBLIC_BACKEND_URL) return process.env.EXPO_PUBLIC_BACKEND_URL;
+  if (typeof window !== 'undefined') return ''; // Same origin in web browser
+  return 'http://localhost:8787';
+};
+
+const BACKEND_URL = getBackendUrl();
 
 async function getAuthHeader(): Promise<Record<string, string>> {
   const { data: { session } } = await supabase.auth.getSession();
