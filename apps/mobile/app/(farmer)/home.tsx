@@ -70,6 +70,16 @@ export default function FarmerHomeScreen() {
           <Text style={styles.cardTitle}>{t('fileGrievance')}</Text>
           <Text style={styles.cardDesc}>Track issues with mandi officers or payments</Text>
         </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.menuCard, { width: '100%', backgroundColor: '#E8F5E9', borderColor: '#A3E635' }]}
+          activeOpacity={0.8}
+          onPress={() => router.push('/(farmer)/assistant')}
+        >
+          <Text style={styles.cardIcon}>🤖</Text>
+          <Text style={styles.cardTitle}>AI Kisan Assistant | AI सहायक</Text>
+          <Text style={styles.cardDesc}>Ask queue wait time, MSP rates & mandi queries in your language</Text>
+        </TouchableOpacity>
       </View>
 
       <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>

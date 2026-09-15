@@ -94,6 +94,13 @@ export default function RootLayout() {
           }}
         />
         <Stack.Screen
+          name="(farmer)/assistant"
+          options={{
+            title: 'AI Kisan Assistant | AI सहायक',
+            headerBackTitle: 'Back'
+          }}
+        />
+        <Stack.Screen
           name="(officer)/dashboard"
           options={{
             title: 'Officer Portal | अधिकारी पोर्टल'

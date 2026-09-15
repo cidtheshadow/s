@@ -10,6 +10,7 @@
     "mobile:dev": "npm --prefix apps/mobile run dev",
     "mobile:web": "npm --prefix apps/mobile run web",
     "mobile:android": "npm --prefix apps/mobile run android",
+    "build": "npm --prefix packages/shared run build",
     "typecheck": "npm run --workspaces typecheck"
   },
   "devDependencies": {
