@@ -1,37 +1,444 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-    <title>Kisanify</title>
-    <!-- The `react-native-web` recommended style reset: https://necolas.github.io/react-native-web/docs/setup/#root-element -->
-    <style id="expo-reset">
-      /* These styles make the body full-height */
-      html,
-      body {
-        height: 100%;
-      }
-      /* These styles disable body scrolling if you are using <ScrollView> */
-      body {
-        overflow: hidden;
-      }
-      /* These styles make the root element full-height */
-      #root {
-        display: flex;
-        height: 100%;
-        flex: 1;
-      }
-    </style>
-  <link rel="preload" href="/_expo/static/css/global-30fcb4b49539bac5f11e99be779c574c.css" as="style"><link rel="stylesheet" href="/_expo/static/css/global-30fcb4b49539bac5f11e99be779c574c.css"></head>
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+  <title>Kisanify | किसानिफाई – Smart Mandi Procurement</title>
+  <meta name="description" content="SIH 2026 | Smart Farmer Mandi Procurement Platform"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; background: #F0F4F1; color: #111827; }
+    #app { min-height: 100vh; display: flex; flex-direction: column; }
 
-  <body>
-    <!-- Use static rendering with Expo Router to support running without JavaScript. -->
-    <noscript>
-      You need to enable JavaScript to run this app.
-    </noscript>
-    <!-- The root element for your Expo app. -->
-    <div id="root"></div>
-  <script src="/_expo/static/js/web/entry-8559a687cbbef98f94f5df6e7433c9ec.js" defer></script>
+    /* ── Topbar ─────────────────────────────────────────── */
+    .topbar { background: #0F5132; color: #fff; padding: 12px 20px; display: flex; align-items: center; gap: 12px; box-shadow: 0 2px 8px rgba(0,0,0,.2); position: sticky; top: 0; z-index: 100; }
+    .topbar-back { cursor: pointer; font-size: 20px; padding: 4px 8px; border-radius: 8px; transition: background .15s; border: none; background: none; color: #fff; }
+    .topbar-back:hover { background: rgba(255,255,255,.15); }
+    .topbar-title { font-size: 18px; font-weight: 700; flex: 1; }
+    .topbar-badge { font-size: 11px; background: rgba(255,255,255,.2); padding: 3px 10px; border-radius: 12px; font-weight: 600; }
+
+    /* ── Screens ─────────────────────────────────────────── */
+    .screen { display: none; flex: 1; padding: 20px; max-width: 600px; margin: 0 auto; width: 100%; }
+    .screen.active { display: flex; flex-direction: column; gap: 16px; }
+
+    /* ── Cards ───────────────────────────────────────────── */
+    .card { background: #fff; border-radius: 16px; padding: 20px; border: 1px solid #E5E7EB; box-shadow: 0 2px 8px rgba(0,0,0,.05); }
+    .card-header { font-size: 20px; font-weight: 800; color: #0F5132; margin-bottom: 4px; }
+    .card-sub { font-size: 14px; color: #6B7280; margin-bottom: 16px; }
+
+    /* ── Hero ────────────────────────────────────────────── */
+    .hero { background: linear-gradient(135deg, #0F5132 60%, #16a34a); border-radius: 20px; padding: 28px 20px; color: #fff; text-align: center; }
+    .hero-badge { display: inline-block; background: rgba(255,255,255,.2); padding: 4px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; margin-bottom: 12px; }
+    .hero-title { font-size: 36px; font-weight: 900; letter-spacing: -1px; }
+    .hero-sub { font-size: 16px; color: #A3E635; margin-top: 6px; font-weight: 500; }
+
+    /* ── Lang Grid ───────────────────────────────────────── */
+    .lang-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+    .lang-btn { padding: 14px; border-radius: 12px; border: 1.5px solid #E5E7EB; background: #F9FAFB; cursor: pointer; text-align: center; transition: all .15s; }
+    .lang-btn:hover { border-color: #0F5132; background: #F0FAF4; }
+    .lang-btn.selected { border-color: #0F5132; background: #E8F5E9; }
+    .lang-name { font-size: 18px; font-weight: 700; color: #111827; }
+    .lang-en { font-size: 12px; color: #6B7280; margin-top: 2px; }
+    .lang-btn.selected .lang-name { color: #0F5132; }
+    .lang-btn.selected .lang-en { color: #166534; }
+
+    /* ── Form ────────────────────────────────────────────── */
+    label { display: block; font-size: 13px; font-weight: 700; color: #374151; margin-bottom: 5px; }
+    .input-wrap { display: flex; align-items: center; border: 1.5px solid #D1D5DB; border-radius: 12px; background: #F9FAFB; overflow: hidden; margin-bottom: 16px; }
+    .input-prefix { padding: 0 12px; font-weight: 700; font-size: 16px; color: #0F5132; border-right: 1.5px solid #D1D5DB; height: 52px; display: flex; align-items: center; }
+    input[type=text], input[type=tel], input[type=number], input[type=email], select, textarea {
+      width: 100%; height: 52px; border: 1.5px solid #D1D5DB; border-radius: 12px; padding: 0 14px;
+      font-size: 16px; background: #F9FAFB; color: #111827; outline: none; font-family: inherit; transition: border-color .15s;
+    }
+    input:focus, select:focus, textarea:focus { border-color: #0F5132; background: #fff; }
+    .input-wrap input { border: none; height: 52px; background: transparent; flex: 1; }
+    textarea { height: 100px; resize: vertical; padding: 12px 14px; }
+    .field { margin-bottom: 16px; }
+    .row { display: flex; gap: 12px; }
+    .row .field { flex: 1; }
+
+    /* ── Buttons ─────────────────────────────────────────── */
+    .btn { width: 100%; height: 52px; border-radius: 12px; border: none; font-size: 17px; font-weight: 700; cursor: pointer; transition: opacity .15s, transform .1s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .btn:active { transform: scale(.98); }
+    .btn:disabled { opacity: .6; cursor: not-allowed; }
+    .btn-primary { background: #0F5132; color: #fff; }
+    .btn-primary:hover:not(:disabled) { background: #0d4229; }
+    .btn-secondary { background: #E8F5E9; color: #0F5132; border: 1.5px solid #A3E635; }
+    .btn-secondary:hover { background: #dcf0e0; }
+    .btn-danger { background: #FEE2E2; color: #DC2626; border: 1.5px solid #FCA5A5; }
+    .btn-sm { height: 40px; font-size: 14px; width: auto; padding: 0 20px; }
+    .btn-link { background: none; border: none; color: #0F5132; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: underline; margin-top: 8px; }
+
+    /* ── Menu Grid ───────────────────────────────────────── */
+    .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .menu-card { background: #fff; border: 1px solid #E5E7EB; border-radius: 14px; padding: 18px; cursor: pointer; transition: all .15s; }
+    .menu-card:hover { border-color: #0F5132; box-shadow: 0 4px 16px rgba(15,81,50,.1); transform: translateY(-1px); }
+    .menu-card.wide { grid-column: 1 / -1; background: #E8F5E9; border-color: #A3E635; }
+    .menu-icon { font-size: 30px; margin-bottom: 10px; }
+    .menu-title { font-size: 15px; font-weight: 700; color: #111827; }
+    .menu-desc { font-size: 12px; color: #6B7280; margin-top: 4px; line-height: 1.4; }
+
+    /* ── Welcome Card ────────────────────────────────────── */
+    .welcome-card { background: #0F5132; border-radius: 16px; padding: 20px; color: #fff; }
+    .welcome-badge { font-size: 11px; font-weight: 700; text-transform: uppercase; color: #A3E635; letter-spacing: .5px; }
+    .welcome-name { font-size: 22px; font-weight: 800; margin-top: 4px; }
+    .welcome-sub { font-size: 14px; color: rgba(255,255,255,.75); margin-top: 4px; }
+
+    /* ── Info Chips ──────────────────────────────────────── */
+    .chip-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+    .chip { background: #E8F5E9; color: #0F5132; border-radius: 20px; padding: 4px 12px; font-size: 13px; font-weight: 600; border: 1px solid #A3E635; }
+    .chip.red { background: #FEE2E2; color: #DC2626; border-color: #FCA5A5; }
+    .chip.yellow { background: #FEF9C3; color: #854D0E; border-color: #FDE047; }
+    .chip.blue { background: #EFF6FF; color: #1D4ED8; border-color: #93C5FD; }
+
+    /* ── Table ───────────────────────────────────────────── */
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    thead th { background: #0F5132; color: #fff; padding: 10px 12px; text-align: left; font-weight: 700; }
+    thead th:first-child { border-radius: 8px 0 0 0; }
+    thead th:last-child { border-radius: 0 8px 0 0; }
+    tbody tr:nth-child(even) { background: #F9FAFB; }
+    tbody td { padding: 10px 12px; border-bottom: 1px solid #F3F4F6; }
+
+    /* ── Queue Stepper ───────────────────────────────────── */
+    .queue-box { background: linear-gradient(135deg, #0F5132, #166534); border-radius: 20px; padding: 28px; text-align: center; color: #fff; }
+    .queue-token { font-size: 56px; font-weight: 900; line-height: 1; }
+    .queue-label { font-size: 14px; color: rgba(255,255,255,.75); margin-top: 4px; }
+    .queue-steps { display: flex; justify-content: space-between; margin-top: 24px; gap: 4px; }
+    .step { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; }
+    .step-dot { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; }
+    .step.done .step-dot { background: #A3E635; color: #0F5132; }
+    .step.active .step-dot { background: #fff; color: #0F5132; box-shadow: 0 0 0 3px rgba(255,255,255,.4); }
+    .step.pending .step-dot { background: rgba(255,255,255,.2); color: rgba(255,255,255,.5); }
+    .step.done .step-label, .step.active .step-label { color: #fff; }
+    .step.pending .step-label { color: rgba(255,255,255,.45); }
+
+    /* ── Error / Toast ───────────────────────────────────── */
+    .error-box { background: #FEE2E2; border: 1px solid #FCA5A5; border-radius: 10px; padding: 10px 14px; color: #DC2626; font-size: 13px; font-weight: 600; text-align: center; }
+    .success-box { background: #D1FAE5; border: 1px solid #6EE7B7; border-radius: 10px; padding: 10px 14px; color: #065F46; font-size: 13px; font-weight: 600; }
+    .spinner { width: 22px; height: 22px; border: 3px solid rgba(255,255,255,.4); border-top-color: #fff; border-radius: 50%; animation: spin .7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Chat ────────────────────────────────────────────── */
+    .chat-box { display: flex; flex-direction: column; gap: 12px; max-height: 340px; overflow-y: auto; padding: 4px; }
+    .msg { max-width: 82%; padding: 10px 14px; border-radius: 16px; font-size: 14px; line-height: 1.5; }
+    .msg.user { background: #0F5132; color: #fff; border-radius: 16px 16px 4px 16px; align-self: flex-end; }
+    .msg.bot { background: #fff; border: 1px solid #E5E7EB; border-radius: 16px 16px 16px 4px; align-self: flex-start; }
+    .chat-input-row { display: flex; gap: 8px; margin-top: 12px; }
+    .chat-input-row input { flex: 1; height: 44px; }
+    .chat-input-row .btn { width: 44px; height: 44px; border-radius: 12px; font-size: 18px; }
+
+    /* ── Stats ───────────────────────────────────────────── */
+    .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .stat-card { background: #fff; border: 1px solid #E5E7EB; border-radius: 14px; padding: 16px; text-align: center; }
+    .stat-val { font-size: 30px; font-weight: 900; color: #0F5132; }
+    .stat-label { font-size: 12px; color: #6B7280; font-weight: 600; margin-top: 2px; }
+
+    /* ── Slot Grid ───────────────────────────────────────── */
+    .slot-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .slot-btn { padding: 10px; border-radius: 10px; border: 1.5px solid #D1D5DB; background: #F9FAFB; cursor: pointer; text-align: center; font-size: 13px; font-weight: 600; transition: all .15s; }
+    .slot-btn:hover { border-color: #0F5132; }
+    .slot-btn.selected { border-color: #0F5132; background: #E8F5E9; color: #0F5132; }
+    .slot-btn.booked { border-color: #FCA5A5; background: #FEE2E2; color: #DC2626; cursor: not-allowed; font-size: 11px; }
+
+    /* ── Price Chart ─────────────────────────────────────── */
+    .price-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #F3F4F6; }
+    .price-up { color: #16A34A; font-size: 12px; font-weight: 600; }
+    .price-down { color: #DC2626; font-size: 12px; font-weight: 600; }
+
+    /* ── Grievance ───────────────────────────────────────── */
+    .grievance-item { border-left: 4px solid #0F5132; padding: 12px 16px; background: #fff; border-radius: 0 12px 12px 0; border: 1px solid #E5E7EB; }
+    .grievance-item.pending { border-left-color: #F59E0B; }
+    .grievance-item.resolved { border-left-color: #10B981; }
+
+    @media (max-width: 480px) {
+      .menu-grid { grid-template-columns: 1fr; }
+      .hero-title { font-size: 28px; }
+      .stat-val { font-size: 22px; }
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+  <div class="topbar" id="topbar" style="display:none">
+    <button class="topbar-back" onclick="goBack()">&#8592;</button>
+    <div class="topbar-title" id="topbarTitle">Kisanify</div>
+    <span class="topbar-badge">SIH 2026</span>
+  </div>
+
+  <!-- SPLASH / LANGUAGE -->
+  <div class="screen active" id="screen-splash" style="padding-top:32px">
+    <div class="hero">
+      <div class="hero-badge">SIH 2026 &bull; SIH26032</div>
+      <div class="hero-title" id="heroTitle">&#2325;&#2367;&#2360;&#2366;&#2344;&#2367;&#2347;&#2366;&#2312;</div>
+      <div class="hero-sub" id="heroSub">&#2360;&#2381;&#2350;&#2366;&#2352;&#2381;&#2335; &#2325;&#2367;&#2360;&#2366;&#2344; &#2326;&#2352;&#2368;&#2342; &#2350;&#2306;&#2330;</div>
+    </div>
+    <div class="card">
+      <div class="card-header" id="selectLangLabel">&#2309;&#2346;&#2344;&#2368; &#2349;&#2366;&#2359;&#2366; &#2330;&#2369;&#2344;&#2375;&#2306;</div>
+      <div class="card-sub">Select Your Language</div>
+      <div class="lang-grid" id="langGrid"></div>
+      <button class="btn btn-primary" onclick="goTo('screen-login')"><span id="continueTxt">&#2310;&#2327;&#2375; &#2348;&#2338;&#2364;&#2375;&#2306;</span> &#8594;</button>
+    </div>
+  </div>
+
+  <!-- LOGIN -->
+  <div class="screen" id="screen-login">
+    <div class="card" style="margin-top:32px">
+      <div class="card-header" id="loginTitle">&#2350;&#2379;&#2348;&#2366;&#2311;&#2354; &#2344;&#2306;&#2348;&#2352; &#2342;&#2352;&#2381;&#2332; &#2325;&#2352;&#2375;&#2306;</div>
+      <div class="card-sub" id="loginSub">&#2360;&#2340;&#2381;&#2351;&#2366;&#2346;&#2344; &#2325;&#2375; &#2354;&#2367;&#2319; &#2361;&#2350; 6-&#2309;&#2306;&#2325;&#2368;&#2351; OTP &#2349;&#2375;&#2332;&#2375;&#2306;&#2327;&#2375;</div>
+      <div id="loginError"></div>
+      <div id="phoneStep">
+        <label>&#2350;&#2379;&#2348;&#2366;&#2311;&#2354; &#2344;&#2306;&#2348;&#2352;</label>
+        <div class="input-wrap">
+          <div class="input-prefix">+91</div>
+          <input type="tel" id="phoneInput" placeholder="9876543210" maxlength="10" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'')"/>
+        </div>
+        <button class="btn btn-primary" id="sendOtpBtn" onclick="sendOtp()"><span id="sendOtpTxt">OTP &#2349;&#2375;&#2332;&#2375;&#2306;</span></button>
+        <div style="margin-top:20px;text-align:center;font-size:13px;color:#6B7280">&#8212; Or demo login as &#8212;</div>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="btn btn-secondary" style="flex:1" onclick="demoLogin('officer')">&#127970; Officer Portal</button>
+          <button class="btn btn-secondary" style="flex:1" onclick="demoLogin('admin')">&#9881;&#65039; Admin Room</button>
+        </div>
+      </div>
+      <div id="otpStep" style="display:none">
+        <label>OTP &#2342;&#2352;&#2381;&#2332; &#2325;&#2352;&#2375;&#2306;</label>
+        <input type="tel" id="otpInput" placeholder="123456" maxlength="6" inputmode="numeric" style="text-align:center;letter-spacing:8px;font-size:22px;margin-bottom:16px" oninput="this.value=this.value.replace(/\D/g,'')"/>
+        <button class="btn btn-primary" id="verifyBtn" onclick="verifyOtp()"><span id="verifyOtpTxt">&#2360;&#2340;&#2381;&#2351;&#2366;&#2346;&#2367;&#2340; &#2325;&#2352;&#2375;&#2306;</span></button>
+        <button class="btn-link" onclick="backToPhone()" style="display:block;margin:10px auto">&#8592; &#2344;&#2306;&#2348;&#2352; &#2348;&#2342;&#2354;&#2375;&#2306;</button>
+        <div style="margin-top:8px;text-align:center;font-size:12px;color:#9CA3AF">Demo: any 6 digits work</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROFILE -->
+  <div class="screen" id="screen-profile">
+    <div class="card">
+      <div class="card-header">&#2325;&#2367;&#2360;&#2366;&#2344; &#2346;&#2306;&#2332;&#2368;&#2325;&#2352;&#2339;</div>
+      <div class="card-sub">Farmer Registration &bull; Complete your profile</div>
+      <div id="profileError"></div>
+      <div class="field"><label>Full Name / &#2346;&#2370;&#2352;&#2366; &#2344;&#2366;&#2350; *</label><input type="text" id="profName" placeholder="e.g. Gurpreet Singh"/></div>
+      <div class="row">
+        <div class="field"><label>Village / &#2327;&#2366;&#2901;&#2357; *</label><input type="text" id="profVillage" placeholder="e.g. Khanna Kalan"/></div>
+        <div class="field"><label>District / &#2332;&#2364;&#2367;&#2354;&#2366; *</label><input type="text" id="profDistrict" placeholder="e.g. Ludhiana"/></div>
+      </div>
+      <div class="row">
+        <div class="field"><label>State / &#2352;&#2366;&#2332;&#2381;&#2351;</label><input type="text" id="profState" value="Punjab"/></div>
+        <div class="field"><label>Land (Acres)</label><input type="number" id="profLand" value="5.5" min="0.1" step="0.5"/></div>
+      </div>
+      <div class="field"><label>Select Crops / &#2347;&#2360;&#2354;&#2375;&#2306; &#2330;&#2369;&#2344;&#2375;&#2306;</label><div id="cropsGrid" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px"></div></div>
+      <button class="btn btn-primary" onclick="saveProfile()" style="margin-top:4px">Save Profile &amp; Continue &#8594;</button>
+    </div>
+  </div>
+
+  <!-- HOME DASHBOARD -->
+  <div class="screen" id="screen-home">
+    <div class="welcome-card">
+      <div class="welcome-badge">Kisanify Portal &bull; SIH 2026</div>
+      <div class="welcome-name" id="welcomeName">&#2360;&#2381;&#2357;&#2366;&#2327;&#2340; &#2361;&#2376;, Kisan!</div>
+      <div class="welcome-sub">Smart India Hackathon 2026 Procurement Hub</div>
+    </div>
+    <div class="menu-grid">
+      <div class="menu-card" onclick="goTo('screen-centres')"><div class="menu-icon">&#128197;</div><div class="menu-title">Book Mandi Slot</div><div class="menu-desc">Schedule mandi arrival &amp; get instant QR token</div></div>
+      <div class="menu-card" onclick="goTo('screen-queue')"><div class="menu-icon">&#9203;</div><div class="menu-title">Live Queue Status</div><div class="menu-desc">Real-time token position &amp; estimated wait time</div></div>
+      <div class="menu-card" onclick="goTo('screen-prices')"><div class="menu-icon">&#128200;</div><div class="menu-title">Mandi Prices &amp; MSP</div><div class="menu-desc">Live MSP comparison &amp; 7-day price trends</div></div>
+      <div class="menu-card" onclick="goTo('screen-grievance')"><div class="menu-icon">&#128221;</div><div class="menu-title">File Grievance</div><div class="menu-desc">Track issues with mandi officers or payments</div></div>
+      <div class="menu-card wide" onclick="goTo('screen-assistant')"><div class="menu-icon">&#129302;</div><div class="menu-title">AI Kisan Assistant | AI &#2360;&#2361;&#2366;&#2351;&#2325;</div><div class="menu-desc">Ask queue wait time, MSP rates &amp; mandi queries in your language</div></div>
+    </div>
+    <button class="btn btn-danger" onclick="logout()">Logout / &#2354;&#2377;&#2327;&#2310;&#2313;&#2335;</button>
+  </div>
+
+  <!-- CENTRES -->
+  <div class="screen" id="screen-centres">
+    <div class="card"><div class="card-header">Procurement Centres | &#2350;&#2306;&#2337;&#2368; &#2325;&#2375;&#2344;&#2381;&#2342;&#2381;&#2352;</div><div class="card-sub">Select a centre to book your slot</div><div id="centresList"></div></div>
+  </div>
+
+  <!-- BOOK SLOT -->
+  <div class="screen" id="screen-book">
+    <div class="card">
+      <div class="card-header" id="bookCentreName">Book Slot</div>
+      <div class="card-sub">Select date, time slot &amp; crop type</div>
+      <div id="bookError"></div>
+      <div class="field"><label>Date / &#2340;&#2366;&#2352;&#2368;&#2326;</label><input type="date" id="bookDate"/></div>
+      <div class="field"><label>Time Slot / &#2360;&#2350;&#2351;</label><div class="slot-grid" id="slotsGrid"></div></div>
+      <div class="field"><label>Crop Type / &#2347;&#2360;&#2354;</label>
+        <select id="bookCrop"><option>Wheat (&#2327;&#2375;&#2361;&#2370;&#2305;)</option><option>Rice (&#2343;&#2366;&#2344;)</option><option>Maize (&#2350;&#2325;&#2381;&#2325;&#2366;)</option><option>Mustard (&#2360;&#2352;&#2360;&#2379;&#2306;)</option><option>Cotton (&#2325;&#2346;&#2366;&#2360;)</option></select>
+      </div>
+      <div class="field"><label>Quantity (Quintals)</label><input type="number" id="bookQty" value="10" min="1" max="500"/></div>
+      <button class="btn btn-primary" onclick="confirmBooking()">Confirm Booking / &#2348;&#2369;&#2325;&#2367;&#2306;&#2327; &#2325;&#2352;&#2375;&#2306;</button>
+    </div>
+  </div>
+
+  <!-- QUEUE -->
+  <div class="screen" id="screen-queue">
+    <div class="queue-box">
+      <div class="queue-label">Your Token Number</div>
+      <div class="queue-token" id="queueToken">A-047</div>
+      <div class="queue-label" style="margin-top:6px" id="queueCentre">Khanna Mandi Centre</div>
+      <div class="queue-steps" id="queueSteps"></div>
+    </div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-weight:700;font-size:16px">Queue Status</span><span class="chip">&#128994; Live</span></div>
+      <div style="margin-top:14px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;text-align:center">
+        <div><div style="font-size:24px;font-weight:900;color:#0F5132" id="qPending">12</div><div style="font-size:12px;color:#6B7280">Ahead</div></div>
+        <div><div style="font-size:24px;font-weight:900;color:#F59E0B">~45 min</div><div style="font-size:12px;color:#6B7280">Est. Wait</div></div>
+        <div><div style="font-size:24px;font-weight:900;color:#10B981">231</div><div style="font-size:12px;color:#6B7280">Done Today</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div style="font-weight:700;margin-bottom:10px">Currently Serving</div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="background:#E8F5E9;border-radius:12px;padding:10px 16px;font-size:22px;font-weight:900;color:#0F5132">A-035</div>
+        <div><div style="font-weight:700">Harpreet Singh</div><div style="font-size:13px;color:#6B7280">Wheat &bull; 18 Quintals &bull; Window 3</div></div>
+        <span class="chip" style="margin-left:auto">Active</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRICES -->
+  <div class="screen" id="screen-prices">
+    <div class="card"><div class="card-header">Mandi Prices &amp; MSP | &#2350;&#2306;&#2337;&#2368; &#2349;&#2366;&#2357;</div><div class="card-sub" id="pricesDate">Today's rates</div><div id="pricesList"></div></div>
+    <div class="card">
+      <div style="font-weight:700;margin-bottom:8px">&#128202; 7-Day Price Trend (Wheat)</div>
+      <div id="priceChart" style="display:flex;align-items:flex-end;gap:5px;height:80px;margin-top:8px"></div>
+      <div style="display:flex;justify-content:space-between;margin-top:4px;font-size:11px;color:#9CA3AF" id="chartDays"></div>
+    </div>
+  </div>
+
+  <!-- GRIEVANCE -->
+  <div class="screen" id="screen-grievance">
+    <div class="card">
+      <div class="card-header">File Grievance | &#2358;&#2367;&#2325;&#2366;&#2351;&#2340;</div>
+      <div class="card-sub">Raise issues with mandi officers, payments, or queue</div>
+      <div id="grievanceMsg"></div>
+      <div class="field"><label>Grievance Type</label>
+        <select id="grievType"><option>Payment Delay</option><option>Queue Jump Complaint</option><option>Weight Discrepancy</option><option>Officer Misconduct</option><option>Infrastructure Issue</option><option>Other</option></select>
+      </div>
+      <div class="field"><label>Description / &#2357;&#2367;&#2357;&#2352;&#2339;</label><textarea id="grievDesc" placeholder="Describe your issue..."></textarea></div>
+      <button class="btn btn-primary" onclick="submitGrievance()">Submit Grievance / &#2358;&#2367;&#2325;&#2366;&#2351;&#2340; &#2342;&#2352;&#2381;&#2332; &#2325;&#2352;&#2375;&#2306;</button>
+    </div>
+    <div class="card"><div style="font-weight:700;margin-bottom:12px">Your Grievances</div><div style="display:flex;flex-direction:column;gap:10px" id="grievanceList"></div></div>
+  </div>
+
+  <!-- AI ASSISTANT -->
+  <div class="screen" id="screen-assistant">
+    <div class="card" style="flex:1">
+      <div class="card-header">&#129302; AI Kisan Assistant</div>
+      <div class="card-sub">Ask in Hindi, Punjabi, or English &bull; Powered by Gemini AI</div>
+      <div class="chip-row" style="margin-bottom:14px">
+        <span class="chip" style="cursor:pointer" onclick="askChip(this)">&#2350;&#2375;&#2352;&#2366; &#2335;&#2379;&#2325;&#2344; &#2325;&#2367;&#2340;&#2344;&#2375; &#2344;&#2306;&#2348;&#2352; &#2346;&#2352; &#2361;&#2376;?</span>
+        <span class="chip" style="cursor:pointer" onclick="askChip(this)">Wheat MSP today?</span>
+        <span class="chip" style="cursor:pointer" onclick="askChip(this)">&#2662;&#2672;&#2673;&#2672;&#2637; &#2636;&#2672;&#2690;&#2632;&#2684; &#2636;&#2672;&#2690;&#2683;&#2666;?</span>
+      </div>
+      <div class="chat-box" id="chatBox"></div>
+      <div class="chat-input-row">
+        <input type="text" id="chatInput" placeholder="Ask your question..." onkeydown="if(event.key==='Enter')sendChat()"/>
+        <button class="btn btn-primary" onclick="sendChat()">&#10148;</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- OFFICER -->
+  <div class="screen" id="screen-officer">
+    <div class="welcome-card"><div class="welcome-badge">Officer Portal</div><div class="welcome-name">Khanna Procurement Centre</div><div class="welcome-sub">Punjab State Agriculture Board</div></div>
+    <div class="stat-grid">
+      <div class="stat-card"><div class="stat-val">47</div><div class="stat-label">Queue Now</div></div>
+      <div class="stat-card"><div class="stat-val">231</div><div class="stat-label">Done Today</div></div>
+      <div class="stat-card"><div class="stat-val">3</div><div class="stat-label">Open Issues</div></div>
+    </div>
+    <div class="card"><div style="font-weight:700;margin-bottom:12px">Live Queue Management</div><div id="officerQueue"></div><button class="btn btn-primary btn-sm" style="margin-top:12px" onclick="callNext()">&#128226; Call Next Token</button></div>
+    <div class="card"><div style="font-weight:700;margin-bottom:12px">Pending Grievances</div><div style="display:flex;flex-direction:column;gap:10px" id="officerGrievances"></div></div>
+    <button class="btn btn-danger" onclick="logout()">Logout</button>
+  </div>
+
+  <!-- ADMIN -->
+  <div class="screen" id="screen-admin">
+    <div class="welcome-card" style="background:linear-gradient(135deg,#1e1b4b,#4338ca)"><div class="welcome-badge">Admin Control Room</div><div class="welcome-name">Punjab Mandi Network</div><div class="welcome-sub">SIH 2026 &bull; State-wide Procurement Dashboard</div></div>
+    <div class="stat-grid">
+      <div class="stat-card"><div class="stat-val" style="color:#4338ca">12</div><div class="stat-label">Active Centres</div></div>
+      <div class="stat-card"><div class="stat-val" style="color:#4338ca">1,842</div><div class="stat-label">Farmers Today</div></div>
+      <div class="stat-card"><div class="stat-val" style="color:#4338ca">98%</div><div class="stat-label">Uptime</div></div>
+    </div>
+    <div class="card"><div style="font-weight:700;margin-bottom:12px">Centre Performance</div><table><thead><tr><th>Centre</th><th>Queue</th><th>Processed</th><th>Status</th></tr></thead><tbody id="adminTable"></tbody></table></div>
+    <div class="card"><div style="font-weight:700;margin-bottom:12px">System Alerts</div><div style="display:flex;flex-direction:column;gap:10px" id="adminAlerts"></div></div>
+    <button class="btn btn-danger" onclick="logout()">Logout</button>
+  </div>
+
+  <!-- BOOKING DONE -->
+  <div class="screen" id="screen-done">
+    <div class="card" style="text-align:center;padding:36px 20px">
+      <div style="font-size:64px">&#9989;</div>
+      <div style="font-size:22px;font-weight:800;color:#0F5132;margin-top:12px">Booking Confirmed!</div>
+      <div style="font-size:15px;color:#6B7280;margin-top:6px">&#2348;&#2369;&#2325;&#2367;&#2306;&#2327; &#2325;&#2368; &#2346;&#2369;&#2359;&#2381;&#2335;&#2367; &#2361;&#2379; &#2327;&#2312;</div>
+      <div style="margin:24px auto;background:#E8F5E9;border-radius:16px;padding:20px;max-width:280px">
+        <div style="font-size:12px;font-weight:700;color:#6B7280">YOUR TOKEN</div>
+        <div style="font-size:52px;font-weight:900;color:#0F5132" id="confirmToken">A-047</div>
+        <div style="font-size:13px;color:#6B7280" id="confirmSlot"></div>
+        <div style="font-size:13px;color:#6B7280" id="confirmDate"></div>
+        <div style="font-size:13px;font-weight:700;color:#0F5132;margin-top:8px" id="confirmCentre"></div>
+      </div>
+      <div style="font-size:13px;color:#6B7280;margin-bottom:20px">&#128241; SMS sent to your registered number<br>Show this token at the mandi gate</div>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-secondary" onclick="goTo('screen-queue')">View Queue</button>
+        <button class="btn btn-primary" onclick="goTo('screen-home')">Back Home</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+var S={lang:'hi',phone:'',role:'farmer',name:'',centre:null,slot:null,token:'A-0'+String(Math.floor(Math.random()*50)+30),history:[],crops:['Wheat (&#2327;&#2375;&#2361;&#2370;&#2305;)','Rice (&#2343;&#2366;&#2344;)','Maize (&#2350;&#2325;&#2381;&#2325;&#2366;)','Mustard (&#2360;&#2352;&#2360;&#2379;&#2306;)','Cotton (&#2325;&#2346;&#2366;&#2360;)','Sugarcane (&#2327;&#2344;&#2381;&#2344;&#2366;)','Soybean'],selCrops:['Wheat (&#2327;&#2375;&#2361;&#2370;&#2305;)'],grievances:[{id:'GRV001',type:'Payment Delay',desc:'Payment not credited after 5 days',status:'pending',date:'Sep 14'},{id:'GRV002',type:'Weight Discrepancy',desc:'Weight shown 2 quintal less than actual',status:'resolved',date:'Sep 10'}],chat:[]};
+var LANGS=[{code:'hi',label:'&#2361;&#2367;&#2306;&#2342;&#2368;',en:'Hindi',an:'&#2325;&#2367;&#2360;&#2366;&#2344;&#2367;&#2347;&#2366;&#2312;',tl:'&#2360;&#2381;&#2350;&#2366;&#2352;&#2381;&#2335; &#2325;&#2367;&#2360;&#2366;&#2344; &#2326;&#2352;&#2368;&#2342; &#2350;&#2306;&#2330;',sl:'&#2309;&#2346;&#2344;&#2368; &#2349;&#2366;&#2359;&#2366; &#2330;&#2369;&#2344;&#2375;&#2306;',co:'&#2310;&#2327;&#2375; &#2348;&#2338;&#2364;&#2375;&#2306;',lt:'&#2350;&#2379;&#2348;&#2366;&#2311;&#2354; &#2344;&#2306;&#2348;&#2352; &#2342;&#2352;&#2381;&#2332; &#2325;&#2352;&#2375;&#2306;',ls:'&#2360;&#2340;&#2381;&#2351;&#2366;&#2346;&#2344; &#2325;&#2375; &#2354;&#2367;&#2319; OTP',so:'OTP &#2349;&#2375;&#2332;&#2375;&#2306;',vo:'&#2360;&#2340;&#2381;&#2351;&#2366;&#2346;&#2367;&#2340; &#2325;&#2352;&#2375;&#2306; &#2310;&#2352; &#2354;&#2377;&#2327;&#2367;&#2344; &#2325;&#2352;&#2375;&#2306;'},{code:'pa',label:'&#2662;&#2672;&#2691;&#2622;&#2659;&#2624;&#2637;',en:'Punjabi',an:'&#2662;&#2672;&#2691;&#2622;&#2659;&#2637;&#2614;&#2622;&#2624;',tl:'&#2660;&#2617;&#2622;&#2608;&#2672; &#2662;&#2672;&#2691;&#2622;&#2659; &#2660;&#2608;&#2637;&#2608; &#2662;&#2634;&#2690;&#2616;&#2654;&#2608;&#2617;',sl:'&#2662;&#2666;&#2662;&#2659;&#2637; &#2649;&#2622;&#2691;&#2622; &#2659;&#2606;&#2660;&#2666;',co:'&#2662;&#2622;&#2654;&#2645; &#2648;&#2608;&#2666;',lt:'&#2617;&#2666;&#2659;&#2622;&#2624;&#2634; &#2659;&#2672;&#2659;&#2608; &#2608;&#2608;&#2614;',ls:'OTP &#2649;&#2645;&#2666;&#2635;&#2622;&#2624;&#2645;&#2617;',so:'OTP &#2649;&#2645;&#2666;&#2614;&#2666;',vo:'&#2616;&#2644;&#2608;&#2637;&#2642; &#2608;&#2608;&#2666; &#2634;&#2626;&#2624;&#2624;&#2624;'},{code:'en',label:'English',en:'English',an:'Kisanify',tl:'Smart Farmer Procurement Platform',sl:'Select Your Language',co:'Continue',lt:'Enter Mobile Number',ls:'We will send a 6-digit OTP',so:'Send OTP',vo:'Verify & Login'},{code:'mr',label:'&#2350;&#2352;&#2366;&#2336;&#2368;',en:'Marathi',an:'&#2325;&#2367;&#2360;&#2366;&#2344;&#2367;&#2347;&#2366;&#2351;',tl:'&#2360;&#2381;&#2350;&#2366;&#2352;&#2381;&#2335; &#2358;&#2375;&#2340;&#2325;&#2352;&#2368; &#2326;&#2352;&#2375;&#2342;&#2368; &#2346;&#2381;&#2354;&#2381;&#2351;&#2366;&#2335;&#2347;&#2377;&#2352;&#2381;&#2350;',sl:'&#2340;&#2369;&#2350;&#2330;&#2368; &#2349;&#2366;&#2359;&#2366; &#2344;&#2367;&#2357;&#2337;&#2366;',co:'&#2346;&#2369;&#2343;&#2375; &#2332;&#2366;',lt:'&#2350;&#2379;&#2348;&#2366;&#2312;&#2354; &#2344;&#2306;&#2348;&#2352; &#2342;&#2381;&#2351;&#2366;',ls:'OTP &#2346;&#2366;&#2336;&#2357;&#2370;',so:'OTP &#2346;&#2366;&#2336;&#2357;&#2366;',vo:'&#2346;&#2337;&#2340;&#2366;&#2355;&#2339;&#2368; &#2325;&#2352;&#2366;'},{code:'te',label:'&#3108;&#3142;&#3122;&#3137;&#3095;&#3137;',en:'Telugu',an:'&#3093;&#3135;&#3128;&#3134;&#3112;&#3145;&#3115;&#3143;',tl:'&#3128;&#3149;&#3118;&#3134;&#3122;&#3149;&#3091;&#3149; &#3120;&#3132;&#3108;&#3137; &#3093;&#3147;&#3112;&#3137;&#3095;&#3147;&#3122;&#3137;',sl:'&#3118;&#3128;&#3149; &#3125;&#3137;&#3112;&#3137;',co:'&#3093;&#3147;&#3112;&#3128;&#3134;&#3095;&#3135;&#3100;&#3149;&#3095;&#3134;&#3112;&#3149;&#3095;&#3134;',lt:'&#3118;&#3147;&#3090;&#3123;&#3149; &#3112;&#3074;&#3092;&#3122;&#3149;',ls:'OTP &#3110;&#3122;&#3149;&#3110;&#3137;&#3088;&#3134;&#3118;&#3137;',so:'OTP &#3110;&#3074;&#3110;&#3100;&#3149;&#3095;&#3134;&#3112;&#3149;&#3095;&#3134;',vo:'&#3110;&#3137;&#3110;&#3149; Login'},{code:'bn',label:'&#2476;&#2494;&#2434;&#2482;&#2494;',en:'Bengali',an:'&#2453;&#2495;&#2488;&#2494;&#2472;&#2495;&#2475;&#2494;&#2439;',tl:'&#2488;&#2509;&#2478;&#2494;&#2480;&#2509;&#2463; &#2453;&#2499;&#2487;&#2453; &#2474;&#2509;&#2482;&#2509;&#2479;&#2494;&#2463;&#2475;&#2480;&#2509;&#2478;',sl:'&#2477;&#2494;&#2487;&#2494; &#2472;&#2495;&#2480;&#2509;&#2476;&#2494;&#2458;&#2472;',co:'&#2447;&#2455;&#2495;&#2479;&#2492; &#2479;&#2494;&#2472;',lt:'&#2478;&#2507;&#2476;&#2494;&#2439;&#2482; &#2472;&#2478;&#2509;&#2476;&#2480;',ls:'OTP &#2474;&#2494;&#2464;&#2494;&#2476;',so:'OTP &#2474;&#2494;&#2464;&#2494;&#2472;',vo:'&#2479;&#2494;&#2458;&#2494;&#2439; &#2476;&#2494; &#2482;&#2455;&#2439;&#2472;'}];
+var CENTRES=[{id:1,name:'Khanna Mandi',addr:'Grain Market, Khanna, Ludhiana',queue:47,cap:300,status:'Open'},{id:2,name:'Amritsar Central',addr:'Lawrence Road, Amritsar',queue:23,cap:250,status:'Open'},{id:3,name:'Patiala APMC',addr:'Rajpura Chowk, Patiala',queue:61,cap:350,status:'Busy'},{id:4,name:'Jalandhar Mandi',addr:'Phagwara Road, Jalandhar',queue:8,cap:200,status:'Open'}];
+var PRICES=[{c:'Wheat (&#2327;&#2375;&#2361;&#2370;&#2305;)',i:'&#127806;',msp:2275,m:2340,ch:2.9},{c:'Rice (&#2343;&#2366;&#2344;)',i:'&#127834;',msp:2183,m:2100,ch:-3.8},{c:'Maize (&#2350;&#2325;&#2381;&#2325;&#2366;)',i:'&#127805;',msp:2090,m:2150,ch:2.9},{c:'Mustard (&#2360;&#2352;&#2360;&#2379;&#2306;)',i:'&#127803;',msp:5650,m:5820,ch:3.0},{c:'Cotton (&#2325;&#2346;&#2366;&#2360;)',i:'&#9729;&#65039;',msp:7020,m:6950,ch:-1.0},{c:'Sugarcane (&#2327;&#2344;&#2381;&#2344;&#2366;)',i:'&#127852;',msp:340,m:345,ch:1.5}];
+var SLOTS=['6:00&#8211;8:00 AM','8:00&#8211;10:00 AM','10:00 AM&#8211;12 PM','12&#8211;2:00 PM','2:00&#8211;4:00 PM','4:00&#8211;6:00 PM'];
+var BOOKED=[1,3];
+var AI={'wheat':'Current Wheat MSP is &#8377;2,275/quintal. Today\'s mandi rate at Khanna is &#8377;2,340 &#8212; &#8377;65 above MSP! &#128200; Good time to sell.','rice':'Rice MSP is &#8377;2,183/quintal. Market at &#8377;2,100 &#8212; slightly below MSP. APMC purchasing at MSP is guaranteed.','queue':'Your token is '+S.token+'. 12 farmers ahead. Est. wait: ~45 mins at Khanna Mandi.','payment':'Payments are processed within 72 hours via PFMS. Direct bank transfer to your registered account.','msp':'MSP (Minimum Support Price) is the government guaranteed price. Wheat: &#8377;2275, Rice: &#8377;2183, Maize: &#8377;2090, Mustard: &#8377;5650.','&#2350;&#2375;&#2352;&#2366; &#2335;&#2379;&#2325;&#2344;':'&#2310;&#2346;&#2325;&#2366; &#2335;&#2379;&#2325;&#2344; '+S.token+' &#2361;&#2376;&#2404; &#2310;&#2346;&#2325;&#2375; &#2310;&#2327;&#2375; 12 &#2325;&#2367;&#2360;&#2366;&#2344; &#2361;&#2376;&#2306;&#2404; &#2309;&#2344;&#2369;&#2350;&#2366;&#2344;&#2367;&#2340; &#2346;&#2381;&#2352;&#2340;&#2368;&#2325;&#2381;&#2359;&#2366;: ~45 &#2350;&#2367;&#2344;&#2335;&#2404;','&#2350;&#2306;&#2337;&#2368;':'&#2326;&#2344;&#2381;&#2344;&#2366; &#2350;&#2306;&#2337;&#2368; &#2360;&#2369;&#2348;&#2361; 6 &#2348;&#2332;&#2375; &#2326;&#2369;&#2354;&#2340;&#2368; &#2361;&#2376; &#2324;&#2352; &#2358;&#2366;&#2350; 6 &#2348;&#2332;&#2375; &#2348;&#2306;&#2342; &#2361;&#2379;&#2340;&#2368; &#2361;&#2376;&#2404; &#2360;&#2379;&#2350;&#8211;&#2358;&#2928; &#2326;&#2369;&#2354;&#2368; &#2360;&#2375;&#2357;&#2366;&#2319;&#2306;&#2404;','&#2662;&#2672;&#2673;&#2672;&#2637;':'&#2660;&#2617;&#2622;&#2659;&#2622; &#2617;&#2672;&#2673;&#2672;&#2637; &#2660;&#2608;&#2617;&#2666;&#2645;&#2645; 6 &#2648;&#2614;&#2645;&#2645; &#2660;&#2606;&#2634;&#2617;&#2637; &#2626;&#2645; &#2649;&#2622;&#2617;&#2617; 6 &#2648;&#2614;&#2645;&#2645; &#2659;&#2672;&#2633;&#2617; &#2626;&#2666;&#2633;&#2617;&#2637;&#2637;&#2604;','default':'I can help with MSP rates, queue status, slot bookings, mandi timings &amp; more. What would you like to know?'};
+
+function goTo(id){document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});document.getElementById(id).classList.add('active');var tb=document.getElementById('topbar');tb.style.display=(id==='screen-splash')?'none':'flex';var titles={'screen-login':'Login | &#2354;&#2377;&#2327;&#2311;&#2344;','screen-profile':'Farmer Registration','screen-home':'Farmer Dashboard','screen-centres':'Procurement Centres','screen-book':'Book Slot','screen-queue':'Live Queue','screen-prices':'Prices &amp; MSP','screen-grievance':'Grievance | &#2358;&#2367;&#2325;&#2366;&#2351;&#2340;','screen-assistant':'AI Kisan Assistant','screen-officer':'Officer Portal','screen-admin':'Admin Control Room','screen-done':'Booking Confirmed &#10003;'};document.getElementById('topbarTitle').textContent=titles[id]||'Kisanify';if(id==='screen-centres')renderCentres();if(id==='screen-queue')renderQueue();if(id==='screen-prices')renderPrices();if(id==='screen-grievance')renderGrievances();if(id==='screen-book')renderSlots();if(id==='screen-officer')renderOfficer();if(id==='screen-admin')renderAdmin();if(id==='screen-assistant')initChat();if(id==='screen-home'){var l=LANGS.find(function(x){return x.code===S.lang;})||LANGS[0];document.getElementById('welcomeName').textContent=(S.lang==='hi'?'&#2360;&#2381;&#2357;&#2366;&#2327;&#2340; &#2361;&#2376;':'Welcome')+', '+(S.name||'Kisan')+'!';}S.history.push(id);window.scrollTo(0,0);}
+function goBack(){S.history.pop();var p=S.history[S.history.length-1];goTo(p||'screen-home');}
+
+function initLangGrid(){var g=document.getElementById('langGrid');g.innerHTML='';LANGS.forEach(function(l){var b=document.createElement('div');b.className='lang-btn'+(l.code===S.lang?' selected':'');b.innerHTML='<div class="lang-name">'+l.label+'</div><div class="lang-en">'+l.en+'</div>';b.onclick=function(){S.lang=l.code;document.querySelectorAll('.lang-btn').forEach(function(x){x.classList.remove('selected');});b.classList.add('selected');applyLang();};g.appendChild(b);});applyLang();}
+function applyLang(){var l=LANGS.find(function(x){return x.code===S.lang;})||LANGS[0];document.getElementById('heroTitle').innerHTML=l.an;document.getElementById('heroSub').innerHTML=l.tl;document.getElementById('selectLangLabel').innerHTML=l.sl;document.getElementById('continueTxt').innerHTML=l.co;document.getElementById('loginTitle').innerHTML=l.lt;document.getElementById('loginSub').innerHTML=l.ls;document.getElementById('sendOtpTxt').innerHTML=l.so;document.getElementById('verifyOtpTxt').innerHTML=l.vo;}
+
+function initCrops(){var g=document.getElementById('cropsGrid');g.innerHTML='';S.crops.forEach(function(c){var sel=S.selCrops.indexOf(c)>=0;var b=document.createElement('div');b.style.cssText='cursor:pointer;padding:7px 12px;border-radius:20px;border:1.5px solid '+(sel?'#0F5132':'#D1D5DB')+';background:'+(sel?'#E8F5E9':'#F3F4F6')+';font-size:13px;font-weight:600;color:'+(sel?'#0F5132':'#374151');b.innerHTML=(sel?'&#10003; ':'')+c;b.onclick=function(){if(sel){if(S.selCrops.length>1)S.selCrops=S.selCrops.filter(function(x){return x!==c;});}else S.selCrops.push(c);initCrops();};g.appendChild(b);});}
+
+function sendOtp(){var phone=document.getElementById('phoneInput').value.replace(/\D/g,'');if(phone.length<10){showErr('loginError','Please enter a valid 10-digit number');return;}S.phone=phone;document.getElementById('phoneStep').style.display='none';document.getElementById('otpStep').style.display='block';showErr('loginError','');toast('OTP sent to +91'+phone+' (Demo: any 6 digits)');}
+function verifyOtp(){var otp=document.getElementById('otpInput').value.replace(/\D/g,'');if(otp.length!==6){showErr('loginError','Enter a 6-digit OTP');return;}if(S.name){goTo('screen-home');}else{initCrops();goTo('screen-profile');}}
+function demoLogin(role){S.role=role;S.name=role==='officer'?'Rajinder Kumar (Officer)':'Admin (State Board)';goTo(role==='officer'?'screen-officer':'screen-admin');}
+function backToPhone(){document.getElementById('phoneStep').style.display='block';document.getElementById('otpStep').style.display='none';document.getElementById('otpInput').value='';}
+
+function saveProfile(){var n=document.getElementById('profName').value.trim(),v=document.getElementById('profVillage').value.trim(),d=document.getElementById('profDistrict').value.trim();if(!n||!v||!d){showErr('profileError','Please fill Name, Village, District');return;}S.name=n;apiFetch('/farmers/profile',{method:'POST',body:JSON.stringify({name:n,village:v,district:d,state:document.getElementById('profState').value,land_size_acres:parseFloat(document.getElementById('profLand').value)||1,crop_types:S.selCrops,preferred_language:S.lang})}).catch(function(){});goTo('screen-home');}
+
+function renderCentres(){document.getElementById('centresList').innerHTML=CENTRES.map(function(c){return'<div style="border:1px solid #E5E7EB;border-radius:12px;padding:14px;margin-bottom:12px;cursor:pointer;transition:border-color .15s" onclick="pickCentre('+c.id+')" onmouseover="this.style.borderColor=\'#0F5132\'" onmouseout="this.style.borderColor=\'#E5E7EB\'"><div style="display:flex;justify-content:space-between;align-items:center"><div><div style="font-weight:700;font-size:16px">&#127963; '+c.name+'</div><div style="font-size:13px;color:#6B7280;margin-top:2px">&#128205; '+c.addr+'</div></div><span class="chip '+(c.status==='Busy'?'yellow':'')+'">'+( c.status==='Busy'?'&#128993; Busy':'&#128994; Open')+'</span></div><div style="display:flex;gap:16px;margin-top:10px;font-size:13px"><span>&#128101; Queue: <b>'+c.queue+'</b></span><span>&#127981; Cap: '+c.cap+'/day</span></div></div>'}).join('');}
+function pickCentre(id){S.centre=CENTRES.find(function(c){return c.id===id;});document.getElementById('bookCentreName').textContent='Book Slot \u2013 '+S.centre.name;var d=new Date();d.setDate(d.getDate()+1);document.getElementById('bookDate').value=d.toISOString().split('T')[0];document.getElementById('bookDate').min=d.toISOString().split('T')[0];S.slot=null;renderSlots();goTo('screen-book');}
+function renderSlots(){document.getElementById('slotsGrid').innerHTML=SLOTS.map(function(s,i){var b=BOOKED.indexOf(i)>=0;return'<div class="slot-btn '+(b?'booked':S.slot===i?'selected':'')+'" onclick="'+(b?'':'pickSlot('+i+')')+'">'+( b?'&#128683; Full':s)+'</div>';}).join('');}
+function pickSlot(i){S.slot=i;renderSlots();}
+function confirmBooking(){if(S.slot===null){showErr('bookError','Please select a time slot');return;}document.getElementById('confirmToken').textContent=S.token;document.getElementById('confirmSlot').textContent=SLOTS[S.slot];document.getElementById('confirmDate').textContent=document.getElementById('bookDate').value;document.getElementById('confirmCentre').textContent=S.centre?S.centre.name:'Khanna Mandi';apiFetch('/bookings',{method:'POST',body:JSON.stringify({centre_id:S.centre?S.centre.id:1,slot_time:SLOTS[S.slot],crop_type:document.getElementById('bookCrop').value,quantity_quintals:parseFloat(document.getElementById('bookQty').value)||10,scheduled_date:document.getElementById('bookDate').value})}).catch(function(){});goTo('screen-done');}
+
+function renderQueue(){document.getElementById('queueToken').textContent=S.token;document.getElementById('queueCentre').textContent=S.centre?S.centre.name:'Khanna Mandi Centre';var steps=[{l:'Arrived',s:'done'},{l:'Weighed',s:'done'},{l:'Graded',s:'active'},{l:'Payment',s:'pending'},{l:'Done',s:'pending'}];document.getElementById('queueSteps').innerHTML=steps.map(function(st){return'<div class="step '+st.s+'"><div class="step-dot">'+(st.s==='done'?'&#10003;':st.s==='active'?'&#9679;':'&#9675;')+'</div><div class="step-label">'+st.l+'</div></div>';}).join('');var p=12,el=document.getElementById('qPending');el.textContent=p;var iv=setInterval(function(){if(p>0&&document.getElementById('screen-queue').classList.contains('active')){p--;el.textContent=p;}else clearInterval(iv);},4000);}
+
+function renderPrices(){document.getElementById('pricesDate').textContent='Today\'s rates \u2022 '+new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long'});document.getElementById('pricesList').innerHTML=PRICES.map(function(p){return'<div class="price-row"><div><div style="font-size:15px;font-weight:700">'+p.i+' '+p.c+'</div><div style="font-size:13px;color:#6B7280">MSP: &#8377;'+p.msp+'/qt</div></div><div style="text-align:right"><div style="font-size:18px;font-weight:800;color:#0F5132">&#8377;'+p.m+'</div><div class="'+(p.ch>=0?'price-up':'price-down')+'">'+( p.ch>=0?'&#9650;':'&#9660;')+' '+Math.abs(p.ch)+'%</div></div></div>';}).join('');var vals=[2180,2210,2270,2240,2300,2320,2340],days=['Mon','Tue','Wed','Thu','Fri','Sat','Today'],mx=Math.max.apply(null,vals);document.getElementById('priceChart').innerHTML=vals.map(function(v,i){return'<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px"><div style="font-size:10px;color:#6B7280">&#8377;'+v+'</div><div style="width:100%;background:'+(i===6?'#0F5132':'#A3E635')+';border-radius:4px 4px 0 0;height:'+((v/mx*68).toFixed(0))+'px"></div></div>';}).join('');document.getElementById('chartDays').innerHTML=days.map(function(d){return'<span>'+d+'</span>';}).join('');}
+
+function renderGrievances(){document.getElementById('grievanceList').innerHTML=S.grievances.map(function(g){return'<div class="grievance-item '+g.status+'"><div style="display:flex;justify-content:space-between;align-items:center"><div style="font-weight:700;font-size:14px">'+g.type+'</div><span class="chip '+(g.status==='resolved'?'':'yellow')+'">'+(g.status==='resolved'?'&#10003; Resolved':'&#9203; Pending')+'</span></div><div style="font-size:13px;color:#6B7280;margin-top:4px">'+g.desc+'</div><div style="font-size:12px;color:#9CA3AF;margin-top:4px">'+g.id+' &bull; '+g.date+'</div></div>';}).join('')||'<div style="color:#6B7280;font-size:14px;text-align:center">No grievances filed yet</div>';}
+function submitGrievance(){var type=document.getElementById('grievType').value,desc=document.getElementById('grievDesc').value.trim();if(!desc){showErr('grievanceMsg','Please describe your issue');return;}apiFetch('/grievances',{method:'POST',body:JSON.stringify({grievance_type:type,description:desc})}).catch(function(){});S.grievances.unshift({id:'GRV'+String(S.grievances.length+1).padStart(3,'0'),type:type,desc:desc,status:'pending',date:'Today'});document.getElementById('grievDesc').value='';renderGrievances();document.getElementById('grievanceMsg').innerHTML='<div class="success-box">&#10003; Grievance submitted! You will be notified via SMS.</div>';setTimeout(function(){document.getElementById('grievanceMsg').innerHTML='';},4000);}
+
+function initChat(){if(!S.chat.length){S.chat.push({r:'bot',t:'&#2344;&#2350;&#2360;&#2381;&#2340;&#2375;! &#127806; &#2350;&#2376;&#2306; &#2310;&#2346;&#2325;&#2366; AI &#2325;&#2367;&#2360;&#2366;&#2344; &#2360;&#2361;&#2366;&#2351;&#2325; &#2361;&#2370;&#2305;&#2404; &#2350;&#2306;&#2337;&#2368; &#2349;&#2366;&#2357;, &#2335;&#2379;&#2325;&#2344;, &#2348;&#2369;&#2325;&#2367;&#2306;&#2327; &#8212; &#2325;&#2369;&#2331; &#2349;&#2368; &#2346;&#2370;&#2331;&#2375;&#2306;!\n\nHello! I\'m your AI Kisan Assistant. Ask about MSP rates, queue, or slot bookings!'});renderChat();}}
+function renderChat(){var b=document.getElementById('chatBox');b.innerHTML=S.chat.map(function(m){return'<div class="msg '+m.r+'" style="white-space:pre-line">'+m.t+'</div>';}).join('');b.scrollTop=b.scrollHeight;}
+function askChip(el){document.getElementById('chatInput').value=el.textContent;sendChat();}
+function sendChat(){var inp=document.getElementById('chatInput'),q=inp.value.trim();if(!q)return;inp.value='';S.chat.push({r:'user',t:q});S.chat.push({r:'bot',t:'&#9203; ...'});renderChat();var ql=q.toLowerCase();var rep=AI['default'];Object.keys(AI).forEach(function(k){if(k!=='default'&&ql.indexOf(k.toLowerCase())>=0)rep=AI[k];});setTimeout(function(){S.chat.pop();apiFetch('/assistant/chat',{method:'POST',body:JSON.stringify({message:q,language:S.lang})}).then(function(r){return r.json();}).then(function(j){S.chat.push({r:'bot',t:(j.data&&j.data.reply)||rep});}).catch(function(){S.chat.push({r:'bot',t:rep});}).finally(function(){renderChat();});},800);}
+
+function renderOfficer(){var farmers=[{t:'A-035',n:'Harpreet Singh',c:'Wheat',q:'18 qt',s:'active'},{t:'A-036',n:'Manpreet Kaur',c:'Rice',q:'12 qt',s:'waiting'},{t:'A-037',n:'Gurwinder Singh',c:'Mustard',q:'25 qt',s:'waiting'},{t:'A-038',n:'Rajbir Kumar',c:'Wheat',q:'8 qt',s:'waiting'}];document.getElementById('officerQueue').innerHTML=farmers.map(function(f){return'<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #F3F4F6"><div style="background:'+(f.s==='active'?'#E8F5E9':'#F3F4F6')+';border-radius:10px;padding:8px 12px;font-weight:800;color:'+(f.s==='active'?'#0F5132':'#374151')+';min-width:64px;text-align:center">'+f.t+'</div><div style="flex:1"><div style="font-weight:700">'+f.n+'</div><div style="font-size:12px;color:#6B7280">'+f.c+' &bull; '+f.q+'</div></div><span class="chip '+(f.s==='active'?'':'blue')+'">'+(f.s==='active'?'&#128994; Active':'&#9203; Waiting')+'</span></div>';}).join('');document.getElementById('officerGrievances').innerHTML=S.grievances.filter(function(g){return g.status==='pending';}).map(function(g){return'<div class="grievance-item pending"><div style="font-weight:700">'+g.type+'</div><div style="font-size:13px;color:#6B7280;margin-top:2px">'+g.desc+'</div><button class="btn btn-secondary btn-sm" style="margin-top:8px" onclick="resolve(\''+g.id+'\')">Mark Resolved &#10003;</button></div>';}).join('')||'<div style="color:#6B7280;font-size:14px">No pending grievances &#127881;</div>';}
+function resolve(id){var g=S.grievances.find(function(x){return x.id===id;});if(g)g.status='resolved';renderOfficer();toast('Grievance '+id+' resolved');}
+function callNext(){toast('&#128226; Token A-036 called to Window 2 | Manpreet Kaur');}
+
+function renderAdmin(){var cs=[{n:'Khanna Mandi',q:47,p:231,s:'&#128994; Active'},{n:'Amritsar Central',q:23,p:187,s:'&#128994; Active'},{n:'Patiala APMC',q:61,p:298,s:'&#128993; Busy'},{n:'Jalandhar',q:8,p:94,s:'&#128994; Active'},{n:'Bathinda',q:0,p:0,s:'&#128308; Offline'}];document.getElementById('adminTable').innerHTML=cs.map(function(c){return'<tr><td style="font-weight:600">'+c.n+'</td><td><span class="chip '+(c.q>50?'yellow':'')+'">'+c.q+'</span></td><td>'+c.p+'</td><td>'+c.s+'</td></tr>';}).join('');document.getElementById('adminAlerts').innerHTML=['<div class="error-box">&#9888;&#65039; Patiala APMC queue at 87% capacity</div>','<div style="background:#EFF6FF;border:1px solid #93C5FD;border-radius:10px;padding:10px 14px;color:#1D4ED8;font-size:13px;font-weight:600">&#8505;&#65039; Bathinda centre offline for maintenance</div>','<div class="success-box">&#10003; All payments processed within SLA today</div>'].join('');}
+
+async function apiFetch(path,opts){var base=(window.location.hostname==='localhost'?'http://localhost:3000':'');try{return await fetch(base+path,Object.assign({},{headers:{'Content-Type':'application/json'}},opts));}catch(e){return{json:function(){return Promise.resolve({});}}; }}
+function showErr(id,msg){var el=document.getElementById(id);if(el)el.innerHTML=msg?'<div class="error-box" style="margin-bottom:12px">'+msg+'</div>':'';}
+function toast(msg){var t=document.createElement('div');t.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#0F5132;color:#fff;padding:12px 20px;border-radius:12px;font-size:14px;font-weight:600;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.3);max-width:90vw;text-align:center';t.innerHTML=msg;document.body.appendChild(t);setTimeout(function(){t.remove();},3500);}
+function logout(){S.name='';S.phone='';S.history=[];S.chat=[];goTo('screen-splash');}
+
+window.onload=function(){initLangGrid();document.getElementById('profName').value='Gurpreet Singh';document.getElementById('profVillage').value='Khanna Kalan';document.getElementById('profDistrict').value='Ludhiana';};
+</script>
 </body>
 </html>
