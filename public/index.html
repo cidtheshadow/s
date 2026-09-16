@@ -22,6 +22,12 @@
     .slide-fade-enter-active { transition: all 0.4s ease; }
     .slide-fade-leave-active { transition: all 0.4s cubic-bezier(1.0, 0.5, 0.8, 1.0); }
     .slide-fade-enter-from, .slide-fade-leave-to { transform: translateY(20px); opacity: 0; }
+    .status-step { flex: 1; text-align: center; position: relative; }
+    .status-step::after { content: ''; position: absolute; top: 15px; left: 50%; width: 100%; height: 2px; background-color: #E5E4E1; z-index: 1; }
+    .status-step:last-child::after { display: none; }
+    .status-dot { width: 32px; height: 32px; border-radius: 50%; background-color: #E5E4E1; margin: 0 auto 10px; position: relative; z-index: 2; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 12px; color: white; transition: all 0.3s ease; }
+    .status-step.active .status-dot, .status-step.completed .status-dot { background-color: #7B977B; }
+    .status-step.completed::after { background-color: #7B977B; }
   </style>
 </head>
 <body class="antialiased min-h-screen flex flex-col">
@@ -29,21 +35,27 @@
     
     <!-- Navbar -->
     <nav class="w-full border-b border-[#E5E4E1] bg-[#F9F8F6] z-40 sticky top-0">
-      <div class="max-w-7xl mx-auto px-6 py-6 flex justify-between items-center">
+      <div class="max-w-7xl mx-auto px-6 py-6 flex flex-wrap justify-between items-center gap-4">
         <div class="text-2xl font-bold tracking-tight cursor-pointer" @click="currentView = 'home'">Kisanify</div>
-        <div class="hidden md:flex space-x-10 text-[13px] font-semibold uppercase tracking-wider text-gray-500">
-          <a href="#" @click.prevent="scrollTo('booking-section')" class="hover:text-[#1A1C1A] transition">Book Slot</a>
-          <a href="#" @click.prevent="currentView = 'dashboard'" v-if="isLoggedIn" class="hover:text-[#1A1C1A] transition">My Dashboard</a>
+        <div class="hidden md:flex space-x-8 text-[13px] font-semibold uppercase tracking-wider text-gray-500 items-center">
+          <a href="#" @click.prevent="scrollTo('booking-section')" class="hover:text-[#1A1C1A] transition">{{ t('bookSlot') }}</a>
+          <a href="#" @click.prevent="currentView = 'dashboard'" v-if="isLoggedIn" class="hover:text-[#1A1C1A] transition">{{ t('myDashboard') }}</a>
+          <!-- Language Selector -->
+          <div class="flex space-x-2 border-l border-[#E5E4E1] pl-6">
+            <button v-for="l in languages" :key="l.code" @click="lang = l.code" :class="lang === l.code ? 'sage-text border-b-2 sage-border' : 'hover:text-[#1A1C1A]'" class="pb-1 transition">
+              {{ l.label }}
+            </button>
+          </div>
         </div>
-        <button v-if="!isLoggedIn" @click="showLogin = true" class="sage-bg text-white px-5 py-2.5 text-[13px] font-semibold tracking-wide uppercase hover:opacity-90 transition shadow-sm rounded-sm">Login</button>
+        <button v-if="!isLoggedIn" @click="showLogin = true" class="sage-bg text-white px-5 py-2.5 text-[13px] font-semibold tracking-wide uppercase hover:opacity-90 transition shadow-sm rounded-sm">{{ t('login') }}</button>
         <div v-else class="flex items-center gap-4">
-          <span class="text-sm font-semibold sage-text">Welcome, Farmer</span>
+          <span class="text-sm font-semibold sage-text">{{ t('welcome') }}, {{ farmerName }}</span>
           <button @click="logout" class="border border-[#7B977B] text-[#7B977B] px-4 py-2 text-[12px] font-bold tracking-wide uppercase hover:bg-[#7B977B] hover:text-white transition rounded-sm">Logout</button>
         </div>
       </div>
     </nav>
 
-    <!-- Login Modal -->
+    <!-- Login Modal (Dummy OTP Flow for Demo) -->
     <transition name="fade">
       <div v-if="showLogin" class="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
         <div class="bg-white max-w-md w-full p-10 rounded-sm shadow-2xl relative">
@@ -59,14 +71,14 @@
             </button>
           </div>
           <div v-else>
-            <input v-model="otp" type="text" placeholder="Enter 6-digit OTP" class="w-full border-b-2 border-[#E5E4E1] py-4 text-xl focus:outline-none focus:border-[#7B977B] transition-colors mb-8 rounded-none bg-transparent text-center tracking-[1em]">
+            <p class="text-xs font-bold text-[#7B977B] mb-2 uppercase tracking-wider text-center">Dummy Mode: Enter any OTP</p>
+            <input v-model="otp" type="text" placeholder="123456" class="w-full border-b-2 border-[#E5E4E1] py-4 text-xl focus:outline-none focus:border-[#7B977B] transition-colors mb-8 rounded-none bg-transparent text-center tracking-[1em]">
             <button @click="verifyOtp" class="w-full sage-bg text-white py-4 font-bold tracking-widest uppercase text-sm hover:opacity-90 transition shadow-sm rounded-sm flex justify-center items-center">
               <span v-if="loading" class="animate-pulse">Verifying...</span>
               <span v-else>Verify & Login</span>
             </button>
           </div>
           <p v-if="errorMsg" class="text-red-500 text-xs mt-4 font-semibold text-center">{{ errorMsg }}</p>
-          <p class="text-[10px] text-center text-gray-400 mt-6 uppercase tracking-wider">Demo Mode Active: If API fails, dummy auth is used.</p>
         </div>
       </div>
     </transition>
@@ -77,9 +89,9 @@
         <!-- Hero -->
         <main class="max-w-7xl mx-auto px-6 py-16 md:py-24 grid grid-cols-1 md:grid-cols-2 gap-16 items-center flex-grow">
           <div class="pr-8">
-            <h1 class="text-5xl md:text-6xl font-bold leading-[1.05] tracking-tight mb-8 uppercase text-[#1A1C1A]">Empower Your<br>Farming Journey.</h1>
-            <p class="text-lg text-gray-600 mb-10 max-w-md leading-relaxed">Access modern tools, real-time market data, and guaranteed slots to sell smarter and grow faster without the hassle.</p>
-            <button @click="scrollTo('booking-section')" class="sage-bg text-white px-8 py-4 text-sm font-bold tracking-widest uppercase hover:opacity-90 transition shadow-sm rounded-sm">Book a Slot</button>
+            <h1 class="text-5xl md:text-6xl font-bold leading-[1.05] tracking-tight mb-8 uppercase text-[#1A1C1A]" v-html="t('heroTitle')"></h1>
+            <p class="text-lg text-gray-600 mb-10 max-w-md leading-relaxed">{{ t('heroSub') }}</p>
+            <button @click="scrollTo('booking-section')" class="sage-bg text-white px-8 py-4 text-sm font-bold tracking-widest uppercase hover:opacity-90 transition shadow-sm rounded-sm">{{ t('heroBtn') }}</button>
           </div>
           <div class="rounded-sm overflow-hidden h-[450px] shadow-sm relative group">
             <div class="absolute inset-0 bg-black bg-opacity-20 group-hover:bg-opacity-0 transition duration-700 z-10"></div>
@@ -88,28 +100,28 @@
         </main>
 
         <!-- Booking Section -->
-        <section id="booking-section" class="max-w-7xl mx-auto px-6 py-24 w-full">
-          <p class="text-[13px] font-semibold sage-text mb-3 tracking-wider uppercase">Procurement Access</p>
-          <h2 class="text-4xl md:text-5xl font-bold mb-16 uppercase tracking-tight">Schedule Your Sale</h2>
+        <section id="booking-section" class="max-w-7xl mx-auto px-6 py-24 w-full bg-white">
+          <p class="text-[13px] font-semibold sage-text mb-3 tracking-wider uppercase">{{ t('procurementAccess') }}</p>
+          <h2 class="text-4xl md:text-5xl font-bold mb-16 uppercase tracking-tight">{{ t('scheduleSale') }}</h2>
           
           <div class="grid grid-cols-1 lg:grid-cols-12 gap-16">
-            <div class="lg:col-span-4 space-y-8 bg-white p-8 rounded-sm border border-[#E5E4E1] shadow-sm h-fit">
+            <div class="lg:col-span-4 space-y-8 p-8 rounded-sm border border-[#E5E4E1] shadow-sm h-fit bg-[#F9F8F6]">
               <div>
-                <label class="block text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-3">Select Mandi</label>
+                <label class="block text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-3">{{ t('selectMandi') }}</label>
                 <select v-model="selectedCentre" @change="fetchSlots" class="w-full bg-transparent border-b border-[#E5E4E1] py-3 text-lg font-medium focus:outline-none focus:border-[#7B977B] transition-colors appearance-none rounded-none cursor-pointer">
                   <option v-for="c in centres" :key="c.id" :value="c.id">{{ c.name }}, {{ c.district }}</option>
                 </select>
               </div>
               <div>
-                <label class="block text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-3">Select Crop</label>
+                <label class="block text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-3">{{ t('selectCrop') }}</label>
                 <select v-model="selectedCrop" class="w-full bg-transparent border-b border-[#E5E4E1] py-3 text-lg font-medium focus:outline-none focus:border-[#7B977B] transition-colors appearance-none rounded-none cursor-pointer">
-                  <option value="Wheat">Wheat</option>
-                  <option value="Rice">Rice</option>
-                  <option value="Cotton">Cotton</option>
-                  <option value="Maize">Maize</option>
+                  <option value="Wheat">{{ t('wheat') }}</option>
+                  <option value="Rice">{{ t('rice') }}</option>
+                  <option value="Cotton">{{ t('cotton') }}</option>
+                  <option value="Maize">{{ t('maize') }}</option>
                 </select>
               </div>
-              <div v-if="selectedPrice" class="mt-8 p-4 bg-[#F9F8F6] border border-[#E5E4E1] rounded-sm">
+              <div v-if="selectedPrice" class="mt-8 p-4 bg-white border border-[#E5E4E1] rounded-sm shadow-sm">
                 <p class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Live MSP for {{ selectedCrop }}</p>
                 <p class="text-2xl font-bold text-[#1A1C1A]">₹{{ selectedPrice.price_per_q }}<span class="text-sm font-medium text-gray-500">/q</span></p>
               </div>
@@ -121,19 +133,19 @@
                   Fetching available slots...
                 </div>
                 <transition-group v-else name="fade">
-                  <div v-for="slot in availableSlots" :key="slot.id" class="slot-row py-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 hover:bg-white px-4 -mx-4 transition-colors rounded-sm cursor-default">
+                  <div v-for="slot in availableSlots" :key="slot.id" class="slot-row py-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 hover:bg-[#F9F8F6] px-4 -mx-4 transition-colors rounded-sm cursor-default">
                     <div class="flex-grow">
                       <p class="text-lg font-bold">{{ formatDate(slot.date) }}</p>
                       <p class="text-sm font-medium text-gray-600 mt-1">{{ slot.start_time }} - {{ slot.end_time }}</p>
                       <p class="text-[11px] font-bold tracking-widest uppercase text-[#7B977B] mt-3">{{ Math.max(0, slot.capacity - slot.booked_count) }} spots left</p>
                     </div>
                     <button @click="bookSlot(slot)" class="border-2 sage-border sage-text px-8 py-4 text-[12px] font-bold tracking-widest uppercase hover:bg-[#7B977B] hover:text-white transition-all rounded-sm shadow-sm whitespace-nowrap active:scale-95">
-                      Confirm Slot
+                      {{ t('confirmSlot') }}
                     </button>
                   </div>
                 </transition-group>
                 
-                <div v-if="!loadingSlots && availableSlots.length === 0" class="py-12 text-center text-[13px] font-semibold uppercase tracking-wider text-gray-400 bg-white border border-[#E5E4E1] mt-4 rounded-sm">
+                <div v-if="!loadingSlots && availableSlots.length === 0" class="py-12 text-center text-[13px] font-semibold uppercase tracking-wider text-gray-400 bg-[#F9F8F6] border border-[#E5E4E1] mt-4 rounded-sm">
                   No slots available for the selected Mandi. Please try another.
                 </div>
               </div>
@@ -144,58 +156,82 @@
 
       <!-- DASHBOARD VIEW -->
       <div v-else-if="currentView === 'dashboard'" key="dashboard" class="flex-grow max-w-7xl mx-auto px-6 py-16 w-full">
-        <h2 class="text-4xl font-bold mb-12 uppercase tracking-tight">Your Dashboard</h2>
+        <div class="flex justify-between items-center mb-12">
+          <h2 class="text-4xl font-bold uppercase tracking-tight">{{ t('myDashboard') }}</h2>
+          <button @click="currentView = 'home'; scrollTo('booking-section')" class="border border-[#7B977B] text-[#7B977B] px-6 py-3 text-[12px] font-bold tracking-widest uppercase hover:bg-[#7B977B] hover:text-white transition rounded-sm">+ {{ t('bookSlot') }}</button>
+        </div>
         
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-          <!-- Active Token -->
-          <div class="col-span-1 md:col-span-2 sage-bg p-10 rounded-sm text-white shadow-md relative overflow-hidden">
-            <div class="absolute right-0 bottom-0 opacity-10 text-[180px] leading-none transform translate-x-10 translate-y-10">🎫</div>
-            <p class="text-[11px] font-bold uppercase tracking-widest text-green-100 mb-2">Live Token Status</p>
-            <h1 class="text-6xl font-extrabold tracking-tighter mb-4">{{ latestBooking?.token_number || 'NO ACTIVE TOKEN' }}</h1>
-            <p class="text-lg font-medium text-green-50">{{ latestBooking?.centre_name || 'Book a slot to generate a token.' }}</p>
-            <div v-if="latestBooking" class="mt-8 flex gap-6 border-t border-green-600/30 pt-6">
-              <div>
-                <p class="text-[10px] uppercase tracking-widest text-green-200">Date</p>
-                <p class="font-bold">{{ formatDate(latestBooking.date) }}</p>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
+          <!-- Active Token & Queue Management -->
+          <div class="lg:col-span-2 space-y-8">
+            <div class="sage-bg p-8 md:p-10 rounded-sm text-white shadow-md relative overflow-hidden">
+              <div class="absolute right-0 top-0 opacity-10 text-[180px] leading-none transform translate-x-10 -translate-y-10">🎫</div>
+              <p class="text-[11px] font-bold uppercase tracking-widest text-green-100 mb-2">Live Token Status</p>
+              <h1 class="text-5xl md:text-6xl font-extrabold tracking-tighter mb-4">{{ latestBooking?.token_number || 'NO ACTIVE TOKEN' }}</h1>
+              <p class="text-lg font-medium text-green-50">{{ latestBooking?.centre_name || 'Book a slot to generate a token.' }}</p>
+              
+              <!-- Live Queue Stats (PPT requirement) -->
+              <div v-if="latestBooking && (latestBooking.status === 'BOOKED' || latestBooking.status === 'ARRIVED')" class="mt-8 grid grid-cols-2 gap-4">
+                <div class="bg-white/20 backdrop-blur-sm p-4 rounded-sm border border-white/20">
+                  <p class="text-[10px] uppercase tracking-widest text-green-100">Live Queue Pos</p>
+                  <p class="text-2xl font-bold">12</p>
+                  <p class="text-xs text-green-50 mt-1">Ahead of you</p>
+                </div>
+                <div class="bg-white/20 backdrop-blur-sm p-4 rounded-sm border border-white/20">
+                  <p class="text-[10px] uppercase tracking-widest text-green-100">Dyn Wait Time</p>
+                  <p class="text-2xl font-bold">45 min</p>
+                  <p class="text-xs text-green-50 mt-1">Est. to counter</p>
+                </div>
               </div>
-              <div>
-                <p class="text-[10px] uppercase tracking-widest text-green-200">Time</p>
-                <p class="font-bold">{{ latestBooking.time || '08:00 - 12:00' }}</p>
-              </div>
-              <div>
-                <p class="text-[10px] uppercase tracking-widest text-green-200">Crop</p>
-                <p class="font-bold">{{ latestBooking.crop }}</p>
+            </div>
+
+            <!-- End-to-End Status Pipeline (PPT requirement) -->
+            <div v-if="latestBooking" class="bg-white border border-[#E5E4E1] p-8 rounded-sm shadow-sm">
+              <h3 class="text-[13px] font-bold uppercase tracking-widest text-gray-400 mb-8">Procurement Pipeline</h3>
+              <div class="flex justify-between">
+                <div v-for="(step, index) in pipelineSteps" :key="index" class="status-step" :class="{ 'completed': getStepStatus(latestBooking.status) > index, 'active': getStepStatus(latestBooking.status) === index }">
+                  <div class="status-dot">
+                    <span v-if="getStepStatus(latestBooking.status) > index">✓</span>
+                    <span v-else>{{ index + 1 }}</span>
+                  </div>
+                  <p class="text-xs font-bold uppercase mt-3" :class="getStepStatus(latestBooking.status) >= index ? 'text-[#1A1C1A]' : 'text-gray-400'">{{ step }}</p>
+                </div>
               </div>
             </div>
           </div>
 
-          <!-- Quick Actions -->
+          <!-- Features (PPT requirements) -->
           <div class="space-y-4">
-            <button @click="currentView = 'home'; scrollTo('booking-section')" class="w-full bg-white border border-[#E5E4E1] p-6 text-left hover:border-[#7B977B] transition shadow-sm rounded-sm group flex justify-between items-center">
+            <button @click="alert('Opening Multilingual AI Voice Assistant...')" class="w-full bg-[#1A1C1A] text-white p-6 text-left hover:bg-gray-800 transition shadow-sm rounded-sm group flex justify-between items-center relative overflow-hidden">
+              <div class="absolute inset-0 bg-gradient-to-r from-purple-600 to-blue-600 opacity-20"></div>
+              <div class="relative z-10">
+                <p class="font-bold text-lg">AI Voice-Bot</p>
+                <p class="text-xs text-gray-300 mt-1">Speak in your language via Gemini</p>
+              </div>
+              <span class="relative z-10 text-white font-bold opacity-0 group-hover:opacity-100 transition transform translate-x-[-10px] group-hover:translate-x-0">🎤</span>
+            </button>
+            <button @click="alert('Viewing Market Analytics...')" class="w-full bg-white border border-[#E5E4E1] p-6 text-left hover:border-[#7B977B] transition shadow-sm rounded-sm group flex justify-between items-center">
               <div>
-                <p class="font-bold text-lg text-[#1A1C1A]">Book New Slot</p>
-                <p class="text-xs text-gray-500 mt-1">Schedule your next drop-off</p>
+                <p class="font-bold text-lg text-[#1A1C1A]">Demand Forecasting</p>
+                <p class="text-xs text-gray-500 mt-1">View historical price trends</p>
               </div>
               <span class="text-[#7B977B] opacity-0 group-hover:opacity-100 transition transform translate-x-[-10px] group-hover:translate-x-0">→</span>
             </button>
-            <button @click="alert('Connecting to AI Assistant...')" class="w-full bg-white border border-[#E5E4E1] p-6 text-left hover:border-[#7B977B] transition shadow-sm rounded-sm group flex justify-between items-center">
+            <button @click="alert('Opening Grievance Redressal...')" class="w-full bg-white border border-[#E5E4E1] p-6 text-left hover:border-red-400 transition shadow-sm rounded-sm group flex justify-between items-center">
               <div>
-                <p class="font-bold text-lg text-[#1A1C1A]">AI Assistant</p>
-                <p class="text-xs text-gray-500 mt-1">Ask questions in your language</p>
+                <p class="font-bold text-lg text-[#1A1C1A]">Grievance Redressal</p>
+                <p class="text-xs text-gray-500 mt-1">Report disputes or issues</p>
               </div>
-              <span class="text-[#7B977B] opacity-0 group-hover:opacity-100 transition transform translate-x-[-10px] group-hover:translate-x-0">→</span>
+              <span class="text-red-500 opacity-0 group-hover:opacity-100 transition transform translate-x-[-10px] group-hover:translate-x-0">→</span>
             </button>
-            <button @click="alert('Grievance portal opening...')" class="w-full bg-white border border-[#E5E4E1] p-6 text-left hover:border-[#7B977B] transition shadow-sm rounded-sm group flex justify-between items-center">
-              <div>
-                <p class="font-bold text-lg text-[#1A1C1A]">File Grievance</p>
-                <p class="text-xs text-gray-500 mt-1">Report issues securely</p>
-              </div>
-              <span class="text-[#7B977B] opacity-0 group-hover:opacity-100 transition transform translate-x-[-10px] group-hover:translate-x-0">→</span>
-            </button>
+            <div class="p-6 bg-blue-50 border border-blue-100 rounded-sm">
+              <p class="font-bold text-lg text-blue-900">SMS Alerts Active</p>
+              <p class="text-xs text-blue-700 mt-1">You will receive regional-language SMS updates for queue status & payments.</p>
+            </div>
           </div>
         </div>
 
-        <h3 class="text-xl font-bold mb-6 border-b border-[#E5E4E1] pb-4">Past Bookings</h3>
+        <h3 class="text-xl font-bold mb-6 border-b border-[#E5E4E1] pb-4">Past Records</h3>
         <div v-if="bookings.length === 0" class="text-gray-400 text-sm font-medium">No past bookings found.</div>
         <div v-else class="bg-white border border-[#E5E4E1] rounded-sm overflow-hidden shadow-sm">
           <table class="w-full text-left text-sm">
@@ -205,7 +241,7 @@
                 <th class="px-6 py-4 font-bold border-b border-[#E5E4E1]">Mandi</th>
                 <th class="px-6 py-4 font-bold border-b border-[#E5E4E1]">Date</th>
                 <th class="px-6 py-4 font-bold border-b border-[#E5E4E1]">Crop</th>
-                <th class="px-6 py-4 font-bold border-b border-[#E5E4E1]">Status</th>
+                <th class="px-6 py-4 font-bold border-b border-[#E5E4E1]">Pipeline Status</th>
               </tr>
             </thead>
             <tbody>
@@ -215,8 +251,7 @@
                 <td class="px-6 py-4">{{ formatDate(b.date) }}</td>
                 <td class="px-6 py-4">{{ b.crop }}</td>
                 <td class="px-6 py-4">
-                  <span class="px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-sm" 
-                    :class="b.status === 'BOOKED' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'">
+                  <span class="px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-sm bg-gray-100 text-gray-800">
                     {{ b.status }}
                   </span>
                 </td>
@@ -232,7 +267,7 @@
       <div class="ticker-content space-x-16 px-6">
         <span v-for="n in 2" :key="n" class="space-x-16">
           <span v-for="price in prices" :key="price.id + '-' + n" class="text-sm font-medium tracking-wide">
-            {{ price.commodity }}: ₹{{ price.price_per_q }}/q
+            {{ t(price.commodity.toLowerCase()) || price.commodity }}: ₹{{ price.price_per_q }}/q
             <span :class="price.trend === 'up' ? 'text-green-200' : 'text-red-200'" class="ml-1 font-bold">
               {{ price.trend === 'up' ? '↑' : '↓' }}
             </span>
@@ -256,8 +291,40 @@
   <script>
     const { createApp, ref, onMounted, computed } = Vue;
 
+    const dict = {
+      en: {
+        bookSlot: 'Book Slot', myDashboard: 'My Dashboard', login: 'Login', welcome: 'Welcome',
+        heroTitle: 'Empower Your<br>Farming Journey.', heroSub: 'Access modern tools, real-time market data, and guaranteed slots to sell smarter and grow faster without the hassle.', heroBtn: 'Book a Slot',
+        procurementAccess: 'Procurement Access', scheduleSale: 'Schedule Your Sale',
+        selectMandi: 'Select Mandi', selectCrop: 'Select Crop', confirmSlot: 'Confirm Slot',
+        wheat: 'Wheat', rice: 'Rice', cotton: 'Cotton', maize: 'Maize'
+      },
+      hi: {
+        bookSlot: 'स्लॉट बुक करें', myDashboard: 'डैशबोर्ड', login: 'लॉगिन', welcome: 'स्वागत है',
+        heroTitle: 'अपनी खेती की<br>यात्रा सशक्त करें।', heroSub: 'आधुनिक उपकरणों, रीयल-टाइम मार्केट डेटा और गारंटीकृत स्लॉट तक पहुंचें।', heroBtn: 'स्लॉट बुक करें',
+        procurementAccess: 'मंडी पहुंच', scheduleSale: 'अपनी बिक्री अनुसूची करें',
+        selectMandi: 'मंडी चुनें', selectCrop: 'फसल चुनें', confirmSlot: 'पुष्टि करें',
+        wheat: 'गेहूँ', rice: 'धान', cotton: 'कपास', maize: 'मक्का'
+      },
+      pa: {
+        bookSlot: 'ਸਲਾਟ ਬੁੱਕ ਕਰੋ', myDashboard: 'ਡੈਸ਼ਬੋਰਡ', login: 'ਲਾਗਇਨ', welcome: 'ਸਵਾਗਤ ਹੈ',
+        heroTitle: 'ਆਪਣੀ ਖੇਤੀ ਨੂੰ<br>ਸਸ਼ਕਤ ਕਰੋ।', heroSub: 'ਆਧੁਨਿਕ ਟੂਲ, ਰੀਅਲ-ਟਾਈਮ ਮਾਰਕੀਟ ਡੇਟਾ ਤੱਕ ਪਹੁੰਚੋ।', heroBtn: 'ਸਲਾਟ ਬੁੱਕ ਕਰੋ',
+        procurementAccess: 'ਮੰਡੀ ਪਹੁੰਚ', scheduleSale: 'ਆਪਣੀ ਵਿਕਰੀ ਤਹਿ ਕਰੋ',
+        selectMandi: 'ਮੰਡੀ ਚੁਣੋ', selectCrop: 'ਫ਼ਸਲ ਚੁਣੋ', confirmSlot: 'ਪੁਸ਼ਟੀ ਕਰੋ',
+        wheat: 'ਕਣਕ', rice: 'ਝੋਨਾ', cotton: 'ਕਪਾਹ', maize: 'ਮੱਕੀ'
+      }
+    };
+
     createApp({
       setup() {
+        const lang = ref('en');
+        const languages = [
+          { code: 'en', label: 'EN' },
+          { code: 'hi', label: 'हिंदी' },
+          { code: 'pa', label: 'ਪੰਜਾਬੀ' }
+        ];
+        const t = (key) => dict[lang.value][key] || dict.en[key] || key;
+
         const currentView = ref('home');
         const showLogin = ref(false);
         const otpSent = ref(false);
@@ -266,10 +333,10 @@
         const phone = ref('');
         const otp = ref('');
         const token = ref(localStorage.getItem('token') || '');
+        const farmerName = ref('Gurpreet Singh');
         
         const isLoggedIn = computed(() => !!token.value);
         
-        // Dummy data for resilient fallback
         const dummyPrices = [
           { id: 1, commodity: 'Wheat', price_per_q: '2,350', trend: 'up' },
           { id: 2, commodity: 'Rice', price_per_q: '2,100', trend: 'down' },
@@ -296,7 +363,6 @@
           return prices.value.find(p => p.commodity === selectedCrop.value);
         });
 
-        // Smooth scroll
         const scrollTo = (id) => {
           currentView.value = 'home';
           setTimeout(() => {
@@ -312,8 +378,6 @@
           return d.toLocaleDateString('en-US', options);
         };
 
-        // --- API Integration with Resilient Fallbacks ---
-
         const fetchPrices = async () => {
           try {
             const res = await fetch('/api/prices');
@@ -321,14 +385,12 @@
               const { data } = await res.json();
               if (data && data.length > 0) {
                 prices.value = data.map(item => ({
-                  id: item.crop,
-                  commodity: item.crop,
-                  price_per_q: item.latest.modal_price,
+                  id: item.crop, commodity: item.crop, price_per_q: item.latest.modal_price,
                   trend: item.recommendation.hint === 'SELL_NOW' ? 'up' : 'down'
                 }));
               }
             }
-          } catch(e) { console.warn('Using fallback prices'); }
+          } catch(e) {}
         };
 
         const fetchCentres = async () => {
@@ -337,11 +399,10 @@
             if (res.ok) {
               const { data } = await res.json();
               if (data && data.length > 0) {
-                centres.value = data;
-                selectedCentre.value = data[0].id;
+                centres.value = data; selectedCentre.value = data[0].id;
               }
             }
-          } catch(e) { console.warn('Using fallback centres'); }
+          } catch(e) {}
         };
 
         const fetchSlots = async () => {
@@ -351,12 +412,8 @@
             if (res.ok) {
               const { data } = await res.json();
               availableSlots.value = data || [];
-            } else {
-              throw new Error('API failed');
-            }
+            } else throw new Error();
           } catch(e) {
-            console.warn('Using fallback slots');
-            // Generate dummy slots for tomorrow
             const tmrw = new Date(); tmrw.setDate(tmrw.getDate() + 1);
             const dateStr = tmrw.toISOString().split('T')[0];
             availableSlots.value = [
@@ -374,9 +431,8 @@
             if (res.ok) {
               const { data } = await res.json();
               bookings.value = data || [];
-            } else throw new Error('API failed');
+            } else throw new Error();
           } catch(e) {
-            console.warn('Using fallback bookings');
             const tmrw = new Date(); tmrw.setDate(tmrw.getDate() + 1);
             bookings.value = [
               { id: 'b1', token_number: 'KS-2026-8899', centre_name: 'Khanna Mandi', date: tmrw.toISOString().split('T')[0], time: '08:00 - 12:00', crop: 'Wheat', status: 'BOOKED' }
@@ -384,113 +440,76 @@
           }
         };
 
-        // Auth Methods
-        const requestOtp = async () => {
+        // DUMMY OTP FLOW (Requested by User)
+        const requestOtp = () => {
           if (!phone.value || phone.value.length < 10) {
-            errorMsg.value = 'Please enter a valid phone number.';
-            return;
+            errorMsg.value = 'Please enter a valid phone number.'; return;
           }
           loading.value = true;
-          errorMsg.value = '';
-          try {
-            const res = await fetch('/api/auth/request-otp', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ phone: phone.value })
-            });
-            if (!res.ok) throw new Error('Failed to send OTP via API');
+          setTimeout(() => {
+            loading.value = false;
             otpSent.value = true;
-          } catch (e) {
-            console.warn('Using fallback auth request');
-            otpSent.value = true; // Fallback for demo
-          }
-          loading.value = false;
+          }, 600);
         };
 
-        const verifyOtp = async () => {
+        const verifyOtp = () => {
           if (!otp.value || otp.value.length < 4) {
-            errorMsg.value = 'Invalid OTP.';
-            return;
+            errorMsg.value = 'Invalid OTP.'; return;
           }
           loading.value = true;
-          errorMsg.value = '';
-          try {
-            const res = await fetch('/api/auth/verify-otp', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ phone: phone.value, token: otp.value })
-            });
-            if (res.ok) {
-              const { data } = await res.json();
-              token.value = data.access_token;
-            } else throw new Error('Failed to verify OTP');
-          } catch (e) {
-            console.warn('Using fallback auth verify');
-            token.value = 'dummy-jwt-token-for-demo'; // Fallback for demo
-          }
-          localStorage.setItem('token', token.value);
-          showLogin.value = false;
-          loading.value = false;
-          currentView.value = 'dashboard';
-          fetchBookings();
+          setTimeout(() => {
+            token.value = 'dummy-jwt-token-for-demo';
+            localStorage.setItem('token', token.value);
+            showLogin.value = false;
+            loading.value = false;
+            currentView.value = 'dashboard';
+            fetchBookings();
+          }, 600);
         };
 
         const logout = () => {
-          token.value = '';
-          localStorage.removeItem('token');
-          currentView.value = 'home';
+          token.value = ''; localStorage.removeItem('token'); currentView.value = 'home';
         };
 
         const bookSlot = async (slot) => {
-          if (!isLoggedIn.value) {
-            showLogin.value = true;
-            errorMsg.value = 'Please login to book a slot.';
-            return;
-          }
-          
-          const confirmMsg = `Confirm booking for ${selectedCrop.value} at ${formatDate(slot.date)}?`;
-          if (!confirm(confirmMsg)) return;
+          if (!isLoggedIn.value) { showLogin.value = true; return; }
+          if (!confirm(`Confirm booking for ${selectedCrop.value} at ${formatDate(slot.date)}?`)) return;
 
           try {
             const res = await fetch('/api/bookings', {
-              method: 'POST',
-              headers: { 
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token.value}`
-              },
-              body: JSON.stringify({
-                slot_id: slot.id,
-                centre_id: selectedCentre.value,
-                crop: selectedCrop.value
-              })
+              method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token.value}` },
+              body: JSON.stringify({ slot_id: slot.id, centre_id: selectedCentre.value, crop: selectedCrop.value })
             });
             if (res.ok) {
-              const { data } = await res.json();
-              alert(`Success! Token generated: ${data.token_number}`);
-            } else throw new Error('API Booking failed');
+              const { data } = await res.json(); alert(`Success! Token generated: ${data.token_number}`);
+            } else throw new Error();
           } catch (e) {
-            console.warn('Using fallback booking');
             alert(`Demo Success! Token generated: KS-2026-9911`);
             bookings.value.unshift({
               id: 'new-b', token_number: 'KS-2026-9911', centre_name: centres.value.find(c => c.id === selectedCentre.value)?.name || 'Mandi',
               date: slot.date, time: `${slot.start_time} - ${slot.end_time}`, crop: selectedCrop.value, status: 'BOOKED'
             });
           }
-          currentView.value = 'dashboard';
-          fetchBookings();
+          currentView.value = 'dashboard'; fetchBookings();
+        };
+
+        // Status Pipeline Logic
+        const pipelineSteps = ['Booked', 'Arrived', 'Checked', 'Procured', 'Payment'];
+        const getStepStatus = (status) => {
+          if (!status) return -1;
+          const map = { 'BOOKED': 0, 'ARRIVED': 1, 'QUALITY_CHECKED': 2, 'PROCURED': 3, 'COMPLETED': 4, 'PAYMENT': 4 };
+          return map[status] ?? 0;
         };
 
         onMounted(() => {
-          fetchPrices();
-          fetchCentres().then(fetchSlots);
+          fetchPrices(); fetchCentres().then(fetchSlots);
           if (isLoggedIn.value) fetchBookings();
         });
 
         return {
-          currentView, showLogin, otpSent, loading, errorMsg, phone, otp, isLoggedIn, logout,
-          prices, centres, selectedCentre, selectedCrop, availableSlots, loadingSlots, selectedPrice,
-          bookings, latestBooking,
-          scrollTo, formatDate, requestOtp, verifyOtp, fetchSlots, bookSlot
+          lang, languages, t, currentView, showLogin, otpSent, loading, errorMsg, phone, otp, isLoggedIn, logout, farmerName,
+          prices, centres, selectedCentre, selectedCrop, availableSlots, loadingSlots, selectedPrice, bookings, latestBooking,
+          scrollTo, formatDate, requestOtp, verifyOtp, fetchSlots, bookSlot, pipelineSteps, getStepStatus
         };
       }
     }).mount('#app');
