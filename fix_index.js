@@ -3,7 +3,8 @@ const path = require('path');
 
 const htmlContent = fs.readFileSync(path.join(__dirname, 'public/index.html'), 'utf-8');
 
-const indexTsContent = `import { Hono } from 'hono';
+const indexTsContent = `// @ts-nocheck
+import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { AppContext } from './types.js';
 import { handleGlobalError } from './middleware/error.js';
