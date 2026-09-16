@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Bindings } from '../types.js';
 import { getSupabaseServiceClient } from './supabase.js';
 

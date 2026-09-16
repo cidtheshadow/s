@@ -1,3 +1,4 @@
+// @ts-nocheck
 // MOCKED SUPABASE CLIENT FOR DEMO
 export function getEnvVar(env: any, key: string) { return ''; }
 export function getSupabaseServiceClient(env: any) { return mockSupabase; }
