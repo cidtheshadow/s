@@ -8,7 +8,7 @@
   <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    body { font-family: 'Inter', sans-serif; background-color: #F9F8F6; color: #1A1C1A; }
+    body { font-family: 'Inter', sans-serif; background-color: #F9F8F6; color: #1A1C1A; overflow-x: hidden; }
     .sage-bg { background-color: #7B977B; }
     .sage-text { color: #7B977B; }
     .sage-border { border-color: #7B977B; }
@@ -28,6 +28,9 @@
     .status-dot { width: 32px; height: 32px; border-radius: 50%; background-color: #E5E4E1; margin: 0 auto 10px; position: relative; z-index: 2; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 12px; color: white; transition: all 0.3s ease; }
     .status-step.active .status-dot, .status-step.completed .status-dot { background-color: #7B977B; }
     .status-step.completed::after { background-color: #7B977B; }
+    /* Voice Bot Animation */
+    .mic-pulse { box-shadow: 0 0 0 0 rgba(123, 151, 123, 0.7); animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(123, 151, 123, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(123, 151, 123, 0); } 100% { box-shadow: 0 0 0 0 rgba(123, 151, 123, 0); } }
   </style>
 </head>
 <body class="antialiased min-h-screen flex flex-col">
@@ -55,30 +58,58 @@
       </div>
     </nav>
 
-    <!-- Login Modal (Dummy OTP Flow for Demo) -->
+    <!-- Modals Layer -->
     <transition name="fade">
+      <!-- Login -->
       <div v-if="showLogin" class="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
         <div class="bg-white max-w-md w-full p-10 rounded-sm shadow-2xl relative">
           <button @click="showLogin = false" class="absolute top-6 right-6 text-gray-400 hover:text-black">✕</button>
           <h3 class="text-3xl font-bold mb-2 uppercase tracking-tight">Access Port</h3>
           <p class="text-sm text-gray-500 mb-8 font-medium">Enter your mobile number to receive an OTP.</p>
-          
           <div v-if="!otpSent">
             <input v-model="phone" type="text" placeholder="+91 9876543210" class="w-full border-b-2 border-[#E5E4E1] py-4 text-xl focus:outline-none focus:border-[#7B977B] transition-colors mb-8 rounded-none bg-transparent">
-            <button @click="requestOtp" class="w-full sage-bg text-white py-4 font-bold tracking-widest uppercase text-sm hover:opacity-90 transition shadow-sm rounded-sm flex justify-center items-center">
-              <span v-if="loading" class="animate-pulse">Sending...</span>
-              <span v-else>Send OTP</span>
-            </button>
+            <button @click="requestOtp" class="w-full sage-bg text-white py-4 font-bold tracking-widest uppercase text-sm hover:opacity-90 transition shadow-sm rounded-sm">Send OTP</button>
           </div>
           <div v-else>
-            <p class="text-xs font-bold text-[#7B977B] mb-2 uppercase tracking-wider text-center">Dummy Mode: Enter any OTP</p>
+            <p class="text-xs font-bold text-[#7B977B] mb-2 uppercase tracking-wider text-center">Demo: Enter any code</p>
             <input v-model="otp" type="text" placeholder="123456" class="w-full border-b-2 border-[#E5E4E1] py-4 text-xl focus:outline-none focus:border-[#7B977B] transition-colors mb-8 rounded-none bg-transparent text-center tracking-[1em]">
-            <button @click="verifyOtp" class="w-full sage-bg text-white py-4 font-bold tracking-widest uppercase text-sm hover:opacity-90 transition shadow-sm rounded-sm flex justify-center items-center">
-              <span v-if="loading" class="animate-pulse">Verifying...</span>
-              <span v-else>Verify & Login</span>
-            </button>
+            <button @click="verifyOtp" class="w-full sage-bg text-white py-4 font-bold tracking-widest uppercase text-sm hover:opacity-90 transition shadow-sm rounded-sm">Verify & Login</button>
           </div>
-          <p v-if="errorMsg" class="text-red-500 text-xs mt-4 font-semibold text-center">{{ errorMsg }}</p>
+        </div>
+      </div>
+    </transition>
+
+    <transition name="fade">
+      <!-- AI Voice Bot Modal -->
+      <div v-if="showVoiceBot" class="fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-[#1A1C1A] max-w-sm w-full p-10 rounded-3xl shadow-2xl relative text-center border border-gray-800">
+          <button @click="showVoiceBot = false" class="absolute top-6 right-6 text-gray-500 hover:text-white">✕</button>
+          <div class="text-4xl mb-6">🤖</div>
+          <h3 class="text-xl font-bold text-white mb-2">Kisanify AI</h3>
+          <p class="text-sm text-gray-400 mb-10">Listening in {{ lang === 'hi' ? 'Hindi' : (lang === 'pa' ? 'Punjabi' : 'English') }}...</p>
+          <button class="w-20 h-20 bg-[#7B977B] rounded-full text-white text-3xl mx-auto flex items-center justify-center mic-pulse mb-6">
+            🎤
+          </button>
+          <p class="text-xs text-gray-500">"What is the MSP for Wheat today?"</p>
+        </div>
+      </div>
+    </transition>
+
+    <transition name="fade">
+      <!-- Grievance Modal -->
+      <div v-if="showGrievance" class="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white max-w-md w-full p-8 rounded-sm shadow-2xl relative">
+          <button @click="showGrievance = false" class="absolute top-6 right-6 text-gray-400 hover:text-black">✕</button>
+          <h3 class="text-2xl font-bold mb-2 uppercase tracking-tight text-red-600">File Grievance</h3>
+          <p class="text-sm text-gray-500 mb-6 font-medium">Report a dispute or operational issue.</p>
+          <select class="w-full border-b border-[#E5E4E1] py-3 text-sm focus:outline-none focus:border-red-500 mb-6 bg-transparent">
+            <option>Quality Rejection Dispute</option>
+            <option>Payment Delay</option>
+            <option>Long Queue / Mismanagement</option>
+            <option>Other</option>
+          </select>
+          <textarea rows="4" placeholder="Describe your issue..." class="w-full border border-[#E5E4E1] p-3 text-sm focus:outline-none focus:border-red-500 mb-6 rounded-sm"></textarea>
+          <button @click="submitGrievance" class="w-full bg-red-600 text-white py-4 font-bold tracking-widest uppercase text-sm hover:bg-red-700 transition shadow-sm rounded-sm">Submit Report</button>
         </div>
       </div>
     </transition>
@@ -108,7 +139,7 @@
             <div class="lg:col-span-4 space-y-8 p-8 rounded-sm border border-[#E5E4E1] shadow-sm h-fit bg-[#F9F8F6]">
               <div>
                 <label class="block text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-3">{{ t('selectMandi') }}</label>
-                <select v-model="selectedCentre" @change="fetchSlots" class="w-full bg-transparent border-b border-[#E5E4E1] py-3 text-lg font-medium focus:outline-none focus:border-[#7B977B] transition-colors appearance-none rounded-none cursor-pointer">
+                <select v-model="selectedCentre" class="w-full bg-transparent border-b border-[#E5E4E1] py-3 text-lg font-medium focus:outline-none focus:border-[#7B977B] transition-colors appearance-none rounded-none cursor-pointer">
                   <option v-for="c in centres" :key="c.id" :value="c.id">{{ c.name }}, {{ c.district }}</option>
                 </select>
               </div>
@@ -144,10 +175,6 @@
                     </button>
                   </div>
                 </transition-group>
-                
-                <div v-if="!loadingSlots && availableSlots.length === 0" class="py-12 text-center text-[13px] font-semibold uppercase tracking-wider text-gray-400 bg-[#F9F8F6] border border-[#E5E4E1] mt-4 rounded-sm">
-                  No slots available for the selected Mandi. Please try another.
-                </div>
               </div>
             </div>
           </div>
@@ -170,7 +197,7 @@
               <h1 class="text-5xl md:text-6xl font-extrabold tracking-tighter mb-4">{{ latestBooking?.token_number || 'NO ACTIVE TOKEN' }}</h1>
               <p class="text-lg font-medium text-green-50">{{ latestBooking?.centre_name || 'Book a slot to generate a token.' }}</p>
               
-              <!-- Live Queue Stats (PPT requirement) -->
+              <!-- Live Queue Stats -->
               <div v-if="latestBooking && (latestBooking.status === 'BOOKED' || latestBooking.status === 'ARRIVED')" class="mt-8 grid grid-cols-2 gap-4">
                 <div class="bg-white/20 backdrop-blur-sm p-4 rounded-sm border border-white/20">
                   <p class="text-[10px] uppercase tracking-widest text-green-100">Live Queue Pos</p>
@@ -185,7 +212,7 @@
               </div>
             </div>
 
-            <!-- End-to-End Status Pipeline (PPT requirement) -->
+            <!-- End-to-End Status Pipeline -->
             <div v-if="latestBooking" class="bg-white border border-[#E5E4E1] p-8 rounded-sm shadow-sm">
               <h3 class="text-[13px] font-bold uppercase tracking-widest text-gray-400 mb-8">Procurement Pipeline</h3>
               <div class="flex justify-between">
@@ -200,9 +227,9 @@
             </div>
           </div>
 
-          <!-- Features (PPT requirements) -->
+          <!-- Features Menu -->
           <div class="space-y-4">
-            <button @click="alert('Opening Multilingual AI Voice Assistant...')" class="w-full bg-[#1A1C1A] text-white p-6 text-left hover:bg-gray-800 transition shadow-sm rounded-sm group flex justify-between items-center relative overflow-hidden">
+            <button @click="showVoiceBot = true" class="w-full bg-[#1A1C1A] text-white p-6 text-left hover:bg-gray-800 transition shadow-sm rounded-sm group flex justify-between items-center relative overflow-hidden">
               <div class="absolute inset-0 bg-gradient-to-r from-purple-600 to-blue-600 opacity-20"></div>
               <div class="relative z-10">
                 <p class="font-bold text-lg">AI Voice-Bot</p>
@@ -210,14 +237,14 @@
               </div>
               <span class="relative z-10 text-white font-bold opacity-0 group-hover:opacity-100 transition transform translate-x-[-10px] group-hover:translate-x-0">🎤</span>
             </button>
-            <button @click="alert('Viewing Market Analytics...')" class="w-full bg-white border border-[#E5E4E1] p-6 text-left hover:border-[#7B977B] transition shadow-sm rounded-sm group flex justify-between items-center">
+            <button @click="currentView = 'analytics'" class="w-full bg-white border border-[#E5E4E1] p-6 text-left hover:border-[#7B977B] transition shadow-sm rounded-sm group flex justify-between items-center">
               <div>
                 <p class="font-bold text-lg text-[#1A1C1A]">Demand Forecasting</p>
                 <p class="text-xs text-gray-500 mt-1">View historical price trends</p>
               </div>
               <span class="text-[#7B977B] opacity-0 group-hover:opacity-100 transition transform translate-x-[-10px] group-hover:translate-x-0">→</span>
             </button>
-            <button @click="alert('Opening Grievance Redressal...')" class="w-full bg-white border border-[#E5E4E1] p-6 text-left hover:border-red-400 transition shadow-sm rounded-sm group flex justify-between items-center">
+            <button @click="showGrievance = true" class="w-full bg-white border border-[#E5E4E1] p-6 text-left hover:border-red-400 transition shadow-sm rounded-sm group flex justify-between items-center">
               <div>
                 <p class="font-bold text-lg text-[#1A1C1A]">Grievance Redressal</p>
                 <p class="text-xs text-gray-500 mt-1">Report disputes or issues</p>
@@ -241,13 +268,13 @@
                 <th class="px-6 py-4 font-bold border-b border-[#E5E4E1]">Mandi</th>
                 <th class="px-6 py-4 font-bold border-b border-[#E5E4E1]">Date</th>
                 <th class="px-6 py-4 font-bold border-b border-[#E5E4E1]">Crop</th>
-                <th class="px-6 py-4 font-bold border-b border-[#E5E4E1]">Pipeline Status</th>
+                <th class="px-6 py-4 font-bold border-b border-[#E5E4E1]">Status</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="b in bookings" :key="b.id" class="border-b last:border-0 border-[#E5E4E1] hover:bg-gray-50 transition">
                 <td class="px-6 py-4 font-bold">{{ b.token_number }}</td>
-                <td class="px-6 py-4">{{ b.centre_name || 'Khanna Mandi' }}</td>
+                <td class="px-6 py-4">{{ b.centre_name }}</td>
                 <td class="px-6 py-4">{{ formatDate(b.date) }}</td>
                 <td class="px-6 py-4">{{ b.crop }}</td>
                 <td class="px-6 py-4">
@@ -258,6 +285,30 @@
               </tr>
             </tbody>
           </table>
+        </div>
+      </div>
+
+      <!-- ANALYTICS / FORECASTING VIEW -->
+      <div v-else-if="currentView === 'analytics'" key="analytics" class="flex-grow max-w-7xl mx-auto px-6 py-16 w-full">
+        <button @click="currentView = 'dashboard'" class="text-sm font-bold uppercase tracking-widest text-[#7B977B] mb-8 hover:opacity-70 transition">← Back to Dashboard</button>
+        <h2 class="text-4xl font-bold mb-4 uppercase tracking-tight">Demand Forecasting</h2>
+        <p class="text-gray-500 mb-12 max-w-2xl">Use predictive AI analytics to determine the best time to sell your produce across different Mandis.</p>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div class="bg-white border border-[#E5E4E1] p-8 rounded-sm shadow-sm" v-for="price in prices" :key="price.id">
+            <div class="flex justify-between items-center mb-6">
+              <h3 class="text-xl font-bold uppercase">{{ t(price.commodity.toLowerCase()) || price.commodity }}</h3>
+              <span class="px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-sm" :class="price.trend === 'up' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">
+                {{ price.trend === 'up' ? 'SELL NOW' : 'HOLD' }}
+              </span>
+            </div>
+            <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">Current Modal Price</p>
+            <p class="text-3xl font-bold text-[#1A1C1A] mb-8">₹{{ price.price_per_q }}</p>
+            <div class="h-24 bg-gray-50 rounded-sm flex items-end justify-between px-2 pt-4 border-b border-[#E5E4E1]">
+              <div v-for="i in 7" class="w-8 bg-[#7B977B] rounded-t-sm transition-all hover:opacity-80" :style="`height: ${40 + Math.random() * 60}%`"></div>
+            </div>
+            <p class="text-xs text-center text-gray-400 mt-3 font-medium">7-Day Historical Trend</p>
+          </div>
         </div>
       </div>
     </transition>
@@ -327,6 +378,8 @@
 
         const currentView = ref('home');
         const showLogin = ref(false);
+        const showVoiceBot = ref(false);
+        const showGrievance = ref(false);
         const otpSent = ref(false);
         const loading = ref(false);
         const errorMsg = ref('');
@@ -353,9 +406,17 @@
         const centres = ref([...dummyCentres]);
         const selectedCentre = ref(1);
         const selectedCrop = ref('Wheat');
-        const availableSlots = ref([]);
+        
+        // Ensure dummy slots are available immediately for UI demo
+        const tmrw = new Date(); tmrw.setDate(tmrw.getDate() + 1);
+        const dateStr = tmrw.toISOString().split('T')[0];
+        const availableSlots = ref([
+          { id: 101, date: dateStr, start_time: '08:00:00', end_time: '12:00:00', capacity: 50, booked_count: 12 },
+          { id: 102, date: dateStr, start_time: '12:00:00', end_time: '16:00:00', capacity: 50, booked_count: 48 }
+        ]);
         const loadingSlots = ref(false);
         
+        // This makes sure our demo state persists beautifully locally
         const bookings = ref([]);
         const latestBooking = computed(() => bookings.value[0] || null);
 
@@ -378,69 +439,12 @@
           return d.toLocaleDateString('en-US', options);
         };
 
-        const fetchPrices = async () => {
-          try {
-            const res = await fetch('/api/prices');
-            if (res.ok) {
-              const { data } = await res.json();
-              if (data && data.length > 0) {
-                prices.value = data.map(item => ({
-                  id: item.crop, commodity: item.crop, price_per_q: item.latest.modal_price,
-                  trend: item.recommendation.hint === 'SELL_NOW' ? 'up' : 'down'
-                }));
-              }
-            }
-          } catch(e) {}
-        };
-
-        const fetchCentres = async () => {
-          try {
-            const res = await fetch('/api/centres');
-            if (res.ok) {
-              const { data } = await res.json();
-              if (data && data.length > 0) {
-                centres.value = data; selectedCentre.value = data[0].id;
-              }
-            }
-          } catch(e) {}
-        };
-
-        const fetchSlots = async () => {
+        const fetchSlots = () => {
           loadingSlots.value = true;
-          try {
-            const res = await fetch(`/api/centres/${selectedCentre.value}/slots`);
-            if (res.ok) {
-              const { data } = await res.json();
-              availableSlots.value = data || [];
-            } else throw new Error();
-          } catch(e) {
-            const tmrw = new Date(); tmrw.setDate(tmrw.getDate() + 1);
-            const dateStr = tmrw.toISOString().split('T')[0];
-            availableSlots.value = [
-              { id: 101, date: dateStr, start_time: '08:00:00', end_time: '12:00:00', capacity: 50, booked_count: 12 },
-              { id: 102, date: dateStr, start_time: '12:00:00', end_time: '16:00:00', capacity: 50, booked_count: 48 }
-            ];
-          }
-          loadingSlots.value = false;
+          setTimeout(() => { loadingSlots.value = false; }, 300);
         };
 
-        const fetchBookings = async () => {
-          if (!isLoggedIn.value) return;
-          try {
-            const res = await fetch('/api/bookings', { headers: { 'Authorization': `Bearer ${token.value}` } });
-            if (res.ok) {
-              const { data } = await res.json();
-              bookings.value = data || [];
-            } else throw new Error();
-          } catch(e) {
-            const tmrw = new Date(); tmrw.setDate(tmrw.getDate() + 1);
-            bookings.value = [
-              { id: 'b1', token_number: 'KS-2026-8899', centre_name: 'Khanna Mandi', date: tmrw.toISOString().split('T')[0], time: '08:00 - 12:00', crop: 'Wheat', status: 'BOOKED' }
-            ];
-          }
-        };
-
-        // DUMMY OTP FLOW (Requested by User)
+        // Auth
         const requestOtp = () => {
           if (!phone.value || phone.value.length < 10) {
             errorMsg.value = 'Please enter a valid phone number.'; return;
@@ -449,13 +453,10 @@
           setTimeout(() => {
             loading.value = false;
             otpSent.value = true;
-          }, 600);
+          }, 400);
         };
 
         const verifyOtp = () => {
-          if (!otp.value || otp.value.length < 4) {
-            errorMsg.value = 'Invalid OTP.'; return;
-          }
           loading.value = true;
           setTimeout(() => {
             token.value = 'dummy-jwt-token-for-demo';
@@ -463,34 +464,38 @@
             showLogin.value = false;
             loading.value = false;
             currentView.value = 'dashboard';
-            fetchBookings();
-          }, 600);
+          }, 400);
         };
 
         const logout = () => {
           token.value = ''; localStorage.removeItem('token'); currentView.value = 'home';
         };
 
-        const bookSlot = async (slot) => {
+        // Fully Local Mocked Booking logic so it never fails!
+        const bookSlot = (slot) => {
           if (!isLoggedIn.value) { showLogin.value = true; return; }
           if (!confirm(`Confirm booking for ${selectedCrop.value} at ${formatDate(slot.date)}?`)) return;
 
-          try {
-            const res = await fetch('/api/bookings', {
-              method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token.value}` },
-              body: JSON.stringify({ slot_id: slot.id, centre_id: selectedCentre.value, crop: selectedCrop.value })
-            });
-            if (res.ok) {
-              const { data } = await res.json(); alert(`Success! Token generated: ${data.token_number}`);
-            } else throw new Error();
-          } catch (e) {
-            alert(`Demo Success! Token generated: KS-2026-9911`);
-            bookings.value.unshift({
-              id: 'new-b', token_number: 'KS-2026-9911', centre_name: centres.value.find(c => c.id === selectedCentre.value)?.name || 'Mandi',
-              date: slot.date, time: `${slot.start_time} - ${slot.end_time}`, crop: selectedCrop.value, status: 'BOOKED'
-            });
-          }
-          currentView.value = 'dashboard'; fetchBookings();
+          const randomNum = Math.floor(1000 + Math.random() * 9000);
+          const newToken = `KS-${new Date().getFullYear()}-${randomNum}`;
+          
+          bookings.value.unshift({
+            id: 'b-' + randomNum,
+            token_number: newToken,
+            centre_name: centres.value.find(c => c.id === selectedCentre.value)?.name || 'Mandi',
+            date: slot.date,
+            time: `${slot.start_time.slice(0,5)} - ${slot.end_time.slice(0,5)}`,
+            crop: selectedCrop.value,
+            status: 'BOOKED'
+          });
+
+          alert(`Success! Token generated: ${newToken}`);
+          currentView.value = 'dashboard';
+        };
+
+        const submitGrievance = () => {
+          alert("Grievance submitted successfully. Case ID: #GRV-3891");
+          showGrievance.value = false;
         };
 
         // Status Pipeline Logic
@@ -501,15 +506,10 @@
           return map[status] ?? 0;
         };
 
-        onMounted(() => {
-          fetchPrices(); fetchCentres().then(fetchSlots);
-          if (isLoggedIn.value) fetchBookings();
-        });
-
         return {
-          lang, languages, t, currentView, showLogin, otpSent, loading, errorMsg, phone, otp, isLoggedIn, logout, farmerName,
+          lang, languages, t, currentView, showLogin, showVoiceBot, showGrievance, otpSent, loading, errorMsg, phone, otp, isLoggedIn, logout, farmerName,
           prices, centres, selectedCentre, selectedCrop, availableSlots, loadingSlots, selectedPrice, bookings, latestBooking,
-          scrollTo, formatDate, requestOtp, verifyOtp, fetchSlots, bookSlot, pipelineSteps, getStepStatus
+          scrollTo, formatDate, requestOtp, verifyOtp, fetchSlots, bookSlot, submitGrievance, pipelineSteps, getStepStatus
         };
       }
     }).mount('#app');
